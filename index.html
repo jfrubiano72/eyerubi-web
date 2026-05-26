@@ -1,0 +1,3542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EyeRubi Web — Análisis de Atención Visual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0A1628;
+  --navy-2:#142340;
+  --teal:#00B8C4;
+  --gold:#E4B04A;
+  --bg:#0A1628;
+  --panel:#142340;
+  --panel-2:#1B2D54;
+  --text:#F0F4FA;
+  --text-dim:#8FA0BC;
+  --border:#243661;
+  --amber:#F59E0B;
+  --green:#22C55E;
+  --sky:#0EA5E9;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--serif);min-height:100vh;overflow-x:hidden}
+body{font-size:15px;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font-family:inherit;background:transparent;border:none;color:inherit;outline:none}
+
+/* ═════════════════ LOGIN ═════════════════ */
+.login-screen{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  z-index:1000;padding:24px
+}
+.login-card{
+  background:linear-gradient(160deg,var(--panel) 0%,var(--panel-2) 100%);
+  border:1px solid var(--border);border-radius:20px;
+  padding:32px;max-width:780px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+  display:grid;grid-template-columns:280px 1fr;gap:32px;align-items:center
+}
+@media(max-width:720px){
+  .login-card{grid-template-columns:1fr;padding:24px;max-width:420px}
+  .login-book{max-width:200px;margin:0 auto}
+}
+.login-book{
+  border-radius:8px;overflow:hidden;
+  box-shadow:0 12px 30px rgba(0,0,0,.6),0 0 0 1px rgba(228,176,74,.2);
+  position:relative;
+  background:#0A1628
+}
+.login-book img{display:block;width:100%;height:auto}
+.login-book-tag{
+  position:absolute;top:8px;right:8px;
+  background:rgba(10,22,40,.85);color:var(--gold);
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  padding:4px 8px;border-radius:4px;
+  text-transform:uppercase;letter-spacing:.1em;
+  border:1px solid var(--gold)
+}
+.login-right{display:flex;flex-direction:column}
+.login-logo{
+  font-family:var(--serif);font-size:42px;font-weight:700;
+  color:var(--gold);letter-spacing:-.02em;margin-bottom:6px
+}
+.login-sub{
+  color:var(--text-dim);font-size:11px;
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:.15em;
+  margin-bottom:18px
+}
+.login-hint{
+  background:rgba(228,176,74,.06);border-left:3px solid var(--gold);
+  border-radius:4px;padding:10px 12px;margin-bottom:18px;
+  font-size:12px;color:var(--text);line-height:1.5
+}
+.login-hint strong{color:var(--gold);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.login-input-group{margin-bottom:12px}
+.login-label{
+  display:block;font-size:11px;color:var(--text-dim);
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:8px
+}
+.login-input{
+  width:100%;padding:14px 16px;
+  background:rgba(0,0,0,.3);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:15px;
+  font-family:var(--mono);transition:all .2s
+}
+.login-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,184,196,.15)}
+.login-btn{
+  width:100%;padding:14px;margin-top:8px;
+  background:linear-gradient(135deg,var(--teal) 0%,#00929C 100%);
+  color:var(--navy);font-weight:700;font-size:14px;
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;
+  border-radius:10px;transition:transform .15s
+}
+.login-btn:hover{transform:translateY(-1px)}
+.login-error{
+  margin-top:14px;padding:10px;background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.3);border-radius:8px;
+  color:#FCA5A5;font-size:13px;text-align:center;display:none
+}
+.login-error.show{display:block}
+.login-foot{
+  margin-top:16px;text-align:center;
+  color:var(--text-dim);font-size:10px;font-family:var(--mono);
+  letter-spacing:.05em
+}
+
+/* ═════════════════ MAIN APP ═════════════════ */
+.app{display:none;min-height:100vh;flex-direction:column}
+.app.active{display:flex}
+
+.app-header{
+  background:linear-gradient(180deg,var(--panel) 0%,rgba(20,35,64,0) 100%);
+  padding:20px 32px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border)
+}
+.app-brand{display:flex;align-items:center;gap:14px}
+.app-logo{
+  font-family:var(--serif);font-size:28px;font-weight:700;
+  color:var(--gold);letter-spacing:-.02em
+}
+.app-tag{
+  font-family:var(--mono);font-size:10px;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.2em;margin-top:2px
+}
+.app-actions{display:flex;gap:12px;align-items:center}
+.app-btn{
+  padding:8px 14px;background:var(--panel-2);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:12px;
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;
+  transition:all .15s
+}
+.app-btn:hover{border-color:var(--teal);color:var(--teal)}
+.app-btn.primary{background:var(--teal);color:var(--navy);border-color:var(--teal);font-weight:700}
+.app-btn.gold{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:700}
+.app-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Mode tabs */
+.mode-tabs{
+  display:flex;gap:4px;padding:0 32px;
+  border-bottom:1px solid var(--border);background:var(--panel)
+}
+.mode-tab{
+  padding:14px 22px;color:var(--text-dim);font-family:var(--mono);
+  font-size:12px;text-transform:uppercase;letter-spacing:.1em;
+  border-bottom:2px solid transparent;transition:all .2s
+}
+.mode-tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+.mode-tab:hover:not(.active){color:var(--text)}
+
+/* Main layout */
+.main{flex:1;display:grid;grid-template-columns:1fr 380px;gap:0;overflow:hidden}
+@media(max-width:1100px){.main{grid-template-columns:1fr}}
+
+/* Left panel: canvas area */
+.canvas-area{
+  padding:24px 32px;display:flex;flex-direction:column;gap:20px;
+  background:var(--bg);overflow-y:auto
+}
+.dropzone{
+  border:2px dashed var(--border);border-radius:16px;
+  padding:60px 24px;text-align:center;
+  background:rgba(20,35,64,.3);
+  transition:all .2s;cursor:pointer
+}
+.dropzone:hover,.dropzone.drag{border-color:var(--teal);background:rgba(0,184,196,.05)}
+.dropzone.hidden{display:none}
+.dz-icon{font-size:48px;margin-bottom:16px;opacity:.6}
+.dz-title{font-family:var(--serif);font-size:24px;font-weight:600;margin-bottom:8px}
+.dz-sub{color:var(--text-dim);font-size:14px;margin-bottom:20px}
+.dz-btn{
+  display:inline-block;padding:12px 24px;background:var(--teal);
+  color:var(--navy);border-radius:8px;font-family:var(--mono);
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em
+}
+
+/* Canvas wrapper — KEY for alignment */
+.cv-wrap{display:none;position:relative;background:#000;border-radius:14px;overflow:hidden}
+.cv-wrap.active{display:block}
+.cv-stage{
+  position:relative;display:block;
+  margin:0 auto;line-height:0;font-size:0;
+  max-width:100%
+}
+.cv-stage canvas,
+.cv-stage svg{
+  display:block;
+  position:absolute;top:0;left:0;
+  width:100%;height:100%
+}
+.cv-stage canvas:first-child{position:relative} /* image canvas is anchor */
+#imgCanvas{position:relative !important}
+
+/* Controles flotantes de la Plantilla Áurea */
+.tpl-controls{
+  position:absolute;top:12px;right:12px;z-index:50;
+  display:flex;gap:6px;
+  background:rgba(10,22,40,0.85);
+  border:1px solid rgba(0,184,196,0.4);
+  border-radius:10px;padding:6px;
+  backdrop-filter:blur(8px);
+}
+.tpl-controls button{
+  width:38px;height:38px;
+  background:rgba(0,184,196,0.15);
+  border:1px solid rgba(0,184,196,0.5);
+  color:#00B8C4;border-radius:7px;
+  font-size:18px;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;
+  font-family:Arial,sans-serif;line-height:1
+}
+.tpl-controls button:hover{
+  background:rgba(0,184,196,0.35);
+  color:#fff;transform:scale(1.08)
+}
+.tpl-controls button:active{ transform:scale(0.95) }
+
+/* Controls bar */
+.cv-controls{
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  padding:12px 0
+}
+.cv-info{
+  font-family:var(--mono);font-size:11px;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.08em
+}
+
+/* Panel contextual debajo de la imagen */
+.context-panel{
+  margin-top:16px;display:none;
+  background:linear-gradient(135deg,rgba(20,35,64,.6),rgba(27,45,84,.4));
+  border:1px solid var(--border);border-radius:14px;padding:20px;
+  border-left:4px solid var(--gold)
+}
+
+/* Panel de diagnóstico + sugerencias debajo de la imagen */
+.diag-panel{
+  margin-top:16px;
+  background:linear-gradient(135deg,rgba(20,35,64,.6),rgba(27,45,84,.4));
+  border:1px solid var(--border);border-radius:14px;padding:20px;
+  border-left:4px solid var(--teal)
+}
+.diag-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:16px}
+@media(max-width:900px){.diag-grid{grid-template-columns:1fr}}
+.diag-block{
+  background:rgba(0,0,0,.25);border-radius:10px;padding:16px
+}
+.diag-block-title{
+  font-family:var(--mono);font-size:11px;color:var(--teal);
+  text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;
+  font-weight:600
+}
+.diag-block.diag-sugs .diag-block-title{color:var(--gold)}
+.diag-text{
+  font-family:var(--serif);font-size:14px;line-height:1.6;color:var(--text)
+}
+.diag-sugs #suggestionsList{display:flex;flex-direction:column;gap:0}
+.diag-sugs .sug-item{
+  display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);
+  font-size:12.5px;line-height:1.55;align-items:flex-start
+}
+.diag-sugs .sug-item:last-child{border-bottom:none}
+.diag-sugs .sug-num{
+  flex-shrink:0;width:22px;height:22px;border-radius:50%;
+  background:var(--gold);color:var(--navy);display:flex;align-items:center;
+  justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;
+  margin-top:1px
+}
+.context-panel.show{display:block}
+.cp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cp-title{font-family:var(--serif);font-size:20px;color:var(--gold);font-weight:600}
+.cp-badge{
+  font-family:var(--mono);font-size:10px;color:var(--teal);
+  background:rgba(0,184,196,.12);border:1px solid var(--teal);
+  padding:4px 10px;border-radius:12px;
+  text-transform:uppercase;letter-spacing:.08em
+}
+.cp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.cp-grid{grid-template-columns:1fr}}
+.cp-block{
+  background:rgba(0,0,0,.25);border-radius:10px;padding:14px
+}
+.cp-block-title{
+  font-family:var(--mono);font-size:10px;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px
+}
+.cp-block p{font-size:13px;line-height:1.55;color:var(--text);margin-bottom:8px}
+.cp-block ul{list-style:none;padding:0}
+.cp-block li{font-size:12.5px;line-height:1.6;padding:6px 0;color:var(--text);
+  border-bottom:1px solid rgba(255,255,255,.05)}
+.cp-block li:last-child{border-bottom:none}
+.cp-block li::before{content:'▸ ';color:var(--gold);font-weight:700}
+.cp-formula{
+  font-family:var(--mono);font-size:11px;color:var(--teal);
+  background:rgba(0,0,0,.3);padding:8px 12px;border-radius:6px;
+  border-left:2px solid var(--teal);margin-top:6px
+}
+
+/* Right panel: controls */
+.ctrl-panel{
+  background:var(--panel);border-left:1px solid var(--border);
+  padding:24px;overflow-y:auto;display:flex;flex-direction:column;gap:20px
+}
+.section{
+  background:rgba(0,0,0,.2);border:1px solid var(--border);
+  border-radius:12px;padding:16px
+}
+.section-label{
+  font-family:var(--mono);font-size:10px;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.15em;margin-bottom:12px
+}
+
+/* Metrics grid */
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.metric{
+  background:var(--panel-2);border:1px solid var(--border);
+  border-radius:10px;padding:12px 10px;text-align:center;cursor:pointer;
+  transition:all .15s;position:relative
+}
+.metric:hover{border-color:var(--gold);transform:translateY(-1px)}
+.metric::after{
+  content:'?';position:absolute;top:4px;right:6px;
+  font-family:var(--mono);font-size:9px;color:var(--text-dim);opacity:.5
+}
+.m-label{font-size:9px;color:var(--text-dim);font-family:var(--mono);
+  text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.m-value{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--gold)}
+.m-sub{font-size:9px;color:var(--text-dim);font-family:var(--mono);margin-top:2px}
+
+/* Métrica popup */
+.metric-popup{
+  position:fixed;inset:0;background:rgba(0,0,0,.8);
+  display:none;align-items:center;justify-content:center;
+  z-index:2000;padding:20px
+}
+.metric-popup.show{display:flex}
+.metric-popup-content{
+  background:var(--panel);border:1px solid var(--gold);border-radius:14px;
+  padding:28px;max-width:520px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.6)
+}
+.metric-popup h3{
+  font-family:var(--serif);font-size:24px;color:var(--gold);margin-bottom:8px
+}
+.metric-popup .mp-formula{
+  background:rgba(0,0,0,.3);border-left:3px solid var(--teal);
+  border-radius:4px;padding:10px 14px;margin:12px 0;
+  font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.6
+}
+.metric-popup p{font-size:13.5px;line-height:1.6;margin-bottom:10px;color:var(--text)}
+.metric-popup .mp-reading{
+  background:rgba(228,176,74,.08);border:1px solid var(--gold);border-radius:8px;
+  padding:12px;margin-top:12px;font-size:12.5px;color:var(--text)
+}
+.metric-popup .mp-reading strong{color:var(--gold);font-family:var(--mono);font-size:11px;
+  text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:4px}
+.metric-popup-close{
+  margin-top:16px;width:100%;padding:12px;
+  background:var(--teal);color:var(--navy);
+  border-radius:8px;font-family:var(--mono);font-size:12px;
+  font-weight:700;text-transform:uppercase;letter-spacing:.1em
+}
+
+/* A/B comparison table */
+.ab-table{
+  width:100%;border-collapse:collapse;margin-top:14px
+}
+.ab-table th,.ab-table td{
+  padding:10px 12px;text-align:center;border-bottom:1px solid var(--border)
+}
+.ab-table th{
+  font-family:var(--mono);font-size:10px;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.1em;background:var(--panel-2);
+  font-weight:600
+}
+.ab-table td{font-family:var(--serif);font-size:18px;font-weight:700}
+.ab-table td.label{
+  font-family:var(--mono);font-size:11px;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.08em;font-weight:400;
+  text-align:left
+}
+.ab-table tr.winner-A td:nth-child(2){background:rgba(0,184,196,.12);color:var(--teal)}
+.ab-table tr.winner-B td:nth-child(3){background:rgba(0,184,196,.12);color:var(--teal)}
+.ab-table .pct{font-size:11px;color:var(--text-dim);font-family:var(--mono);display:block}
+
+/* Toggle list */
+.toggle-list{display:flex;flex-direction:column;gap:6px}
+.toggle-wrap{display:flex;flex-direction:column}
+.toggle{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  background:var(--panel-2);border:1px solid var(--border);border-radius:8px;
+  cursor:pointer;transition:all .15s;user-select:none
+}
+.toggle:hover{border-color:var(--teal);background:rgba(0,184,196,.05)}
+.toggle.active{border-color:var(--teal);background:rgba(0,184,196,.1)}
+.toggle input{display:none}
+.toggle .tg-dot{
+  width:14px;height:14px;border-radius:4px;border:2px solid var(--text-dim);
+  flex-shrink:0;transition:all .15s
+}
+.toggle.active .tg-dot{background:var(--teal);border-color:var(--teal);
+  box-shadow:0 0 8px rgba(0,184,196,.5)}
+.toggle .tg-name{
+  font-family:var(--mono);font-size:11px;text-transform:uppercase;
+  letter-spacing:.05em;flex:1
+}
+.toggle .tg-color{width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.2)}
+
+/* Theory expandable */
+.theory{
+  display:none;
+  background:rgba(228,176,74,.05);
+  border-left:3px solid var(--gold);
+  border-radius:0 6px 6px 0;
+  padding:10px 12px;margin:2px 0 4px 12px;
+  font-size:11.5px;line-height:1.55;color:var(--text);
+  font-family:var(--serif)
+}
+.toggle-wrap.expanded .theory{display:block}
+.theory strong{color:var(--gold);font-family:var(--mono);font-size:10px;
+  text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:4px}
+.theory em{color:var(--teal);font-style:normal;font-family:var(--mono);font-size:10.5px}
+
+/* N-fix selector */
+.nfix-row{
+  display:none;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px
+}
+.nfix-row.show{display:grid}
+.nfix-btn{
+  padding:10px 8px;background:var(--panel-2);border:1px solid var(--border);
+  border-radius:8px;font-family:var(--mono);font-size:11px;
+  color:var(--text);transition:all .15s;text-align:center
+}
+.nfix-btn:hover{border-color:var(--teal)}
+.nfix-btn.active{
+  background:var(--teal);color:var(--navy);border-color:var(--teal);font-weight:700
+}
+.nfix-num{font-size:18px;font-weight:700;display:block;line-height:1}
+.nfix-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.1em;margin-top:4px;display:block;opacity:.85}
+
+.play-scanpath-btn{
+  width:100%;margin-top:10px;padding:11px;
+  background:linear-gradient(135deg,#00B8C4 0%,#00929C 100%);
+  color:#0A1628;border:none;border-radius:10px;
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  display:flex;align-items:center;justify-content:center;gap:6px
+}
+.play-scanpath-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,184,196,.4)}
+.play-scanpath-btn.playing{background:linear-gradient(135deg,#E4B04A 0%,#C49A3D 100%);color:#0A1628}
+
+/* Orient grid */
+.orient-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.orient-btn{
+  padding:14px 10px;background:var(--panel-2);border:1px solid var(--border);
+  border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--text);
+  transition:all .15s;text-align:center
+}
+.orient-btn:hover{border-color:var(--gold)}
+.orient-btn.active{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:700}
+.o-arrow{font-size:18px;display:block;line-height:1}
+.o-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;margin-top:4px;display:block;opacity:.85}
+
+/* Verdict */
+.verdict{
+  background:linear-gradient(135deg,rgba(0,184,196,.1),rgba(228,176,74,.05));
+  border:1px solid var(--teal);border-radius:10px;padding:14px
+}
+.v-label{font-family:var(--mono);font-size:10px;color:var(--teal);
+  text-transform:uppercase;letter-spacing:.15em;margin-bottom:6px}
+.v-text{font-family:var(--serif);font-size:13px;line-height:1.5}
+
+.hint{font-family:var(--mono);font-size:10px;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.08em;margin-top:8px;line-height:1.4}
+
+/* A/B Tab */
+.ab-area{padding:24px 32px;display:none;flex-direction:column;gap:20px}
+.ab-area.active{display:flex}
+.ab-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ab-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  padding:16px;display:flex;flex-direction:column;gap:12px
+}
+.ab-card h3{font-family:var(--mono);font-size:11px;color:var(--gold);
+  text-transform:uppercase;letter-spacing:.15em;text-align:center}
+.ab-dz{
+  border:2px dashed var(--border);border-radius:10px;
+  padding:30px 16px;text-align:center;cursor:pointer;
+  transition:all .15s;min-height:240px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center
+}
+.ab-dz:hover{border-color:var(--teal)}
+.ab-dz .cv-wrap{width:100%}
+
+.ab-results{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  padding:20px;display:none
+}
+.ab-results.show{display:block}
+.ab-winner{
+  font-family:var(--serif);font-size:22px;font-weight:600;color:var(--gold);
+  text-align:center;margin-bottom:16px
+}
+.ab-cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ab-cmp-col{padding:12px;background:var(--panel-2);border-radius:8px;text-align:center}
+.ab-cmp-score{font-family:var(--serif);font-size:32px;font-weight:700;color:var(--teal)}
+.ab-cmp-label{font-family:var(--mono);font-size:10px;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.15em;margin-top:4px}
+
+/* Loading */
+.loading{display:none;text-align:center;padding:20px;color:var(--text-dim);
+  font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.15em}
+.loading.show{display:block}
+.loading::after{content:'';display:inline-block;width:12px;height:12px;
+  border:2px solid var(--teal);border-right-color:transparent;border-radius:50%;
+  animation:spin .8s linear infinite;margin-left:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Suggestions panel */
+.suggestions{
+  background:linear-gradient(135deg,rgba(228,176,74,.08),rgba(0,184,196,.04));
+  border:1px solid var(--gold);border-radius:10px;padding:14px
+}
+.sug-item{
+  display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);
+  font-size:12px;line-height:1.5
+}
+.sug-item:last-child{border-bottom:none}
+.sug-num{
+  flex-shrink:0;width:22px;height:22px;border-radius:50%;
+  background:var(--gold);color:var(--navy);display:flex;align-items:center;
+  justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div class="login-screen" id="login">
+  <div class="login-card">
+    <div class="login-book">
+      <span class="login-book-tag">★ NEUROMARKETING</span>
+      <img src="data:image/jpeg;base64,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" alt="Portada del libro Neuromarketing">
+    </div>
+    <div class="login-right">
+      <div class="login-logo">EyeRubi</div>
+      <div class="login-sub">Behavioral Intelligence Lab</div>
+      <div class="login-hint">
+        <strong>Clave de acceso</strong>
+        <div id="pageChallenge" style="margin-top:6px;font-size:13px;color:var(--text)">
+          Cargando pregunta...
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-dim);line-height:1.4">
+          Si aún no tienes el libro:
+          <a href="https://www.amazon.com/s?k=Neuromarketing+Javier+Rubiano+Espinosa" target="_blank" rel="noopener" style="color:#FF9900;text-decoration:none;font-weight:600">► Cómpralo en Amazon</a>
+          ·
+          <a href="https://javierrubiano.com" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:none;font-weight:600">javierrubiano.com</a>
+        </div>
+      </div>
+      <div class="login-input-group">
+        <input type="password" class="login-input" id="loginKey" placeholder="Primera palabra de la página indicada" autocomplete="off">
+      </div>
+      <button class="login-btn" id="loginBtn">Acceder</button>
+      <div class="login-error" id="loginError"></div>
+      <div style="margin-top:14px;text-align:center">
+        <button id="clearSessionBtn" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:6px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--mono)">🗑️ Limpiar sesión guardada</button>
+      </div>
+      <div class="login-foot">VISORIA Intelligence · Javier Fernando Rubiano Espinosa<br>javierrubiano.com<br><span style="color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.15em">EYERUBI WEB v30</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN APP ═══════════════ -->
+<div class="app" id="app">
+
+  <header class="app-header">
+    <div class="app-brand">
+      <div>
+        <div class="app-logo">EyeRubi</div>
+        <div class="app-tag">Análisis de atención visual</div>
+      </div>
+    </div>
+    <div class="app-actions">
+      <button class="app-btn" id="btnReset">↻ Nueva imagen</button>
+      <button class="app-btn primary" id="btnDocx" disabled>📄 Word</button>
+      <button class="app-btn gold" id="btnPdf" disabled>📑 PDF</button>
+    </div>
+  </header>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-mode="individual">📷 Individual</button>
+    <button class="mode-tab" data-mode="ab">⚖️ A/B Test</button>
+  </div>
+
+  <!-- ═══════════════ INDIVIDUAL MODE ═══════════════ -->
+  <div class="main" id="individualPanel">
+
+    <div class="canvas-area">
+
+      <div class="dropzone" id="dropzone">
+        <div class="dz-icon">📷</div>
+        <div class="dz-title">Sube una imagen para analizar</div>
+        <div class="dz-sub">Arrastra aquí o haz clic para seleccionar · JPG, PNG, WebP</div>
+        <span class="dz-btn">Seleccionar archivo</span>
+        <input type="file" id="fileInput" accept="image/*" style="display:none">
+      </div>
+
+      <div class="loading" id="loading">Analizando imagen</div>
+
+      <div class="cv-wrap" id="cvWrap">
+        <div class="cv-stage" id="cvStage">
+          <canvas id="imgCanvas"></canvas>
+          <canvas id="heatmapCanvas"></canvas>
+          <canvas id="opacityCanvas"></canvas>
+          <svg id="overlaySvg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+          <div id="templateControls" class="tpl-controls" style="display:none">
+            <button onclick="templateFlipH()" title="Voltear horizontal">↔</button>
+            <button onclick="templateFlipV()" title="Voltear vertical">↕</button>
+            <button onclick="templateFlipBoth()" title="Voltear diagonal">⇆</button>
+            <button onclick="templateFitCanvas()" title="Ajustar al lienzo">⛶</button>
+            <button onclick="templateReset()" title="Reset (rectángulo áureo centrado)">↺</button>
+          </div>
+        </div>
+        <div class="cv-controls">
+          <span class="cv-info" id="imgInfo">—</span>
+        </div>
+      </div>
+
+      <div class="context-panel" id="contextPanel">
+        <div class="cp-header">
+          <div class="cp-title" id="cpTitle">—</div>
+          <div class="cp-badge" id="cpBadge">CAPA ACTIVA</div>
+        </div>
+        <div class="cp-grid">
+          <div class="cp-block">
+            <div class="cp-block-title">📐 Teoría y fórmula</div>
+            <p id="cpTheory">—</p>
+            <div class="cp-formula" id="cpFormula" style="display:none">—</div>
+          </div>
+          <div class="cp-block">
+            <div class="cp-block-title">🔍 Lectura específica de tu pieza</div>
+            <ul id="cpReading"><li>—</li></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diagnóstico + Sugerencias debajo de la imagen (visibles cuando NO hay capa activa) -->
+      <div class="diag-panel" id="diagPanel" style="display:none">
+        <div class="diag-grid">
+          <div class="diag-block diag-verdict">
+            <div class="diag-block-title">🎯 Diagnóstico ejecutivo</div>
+            <div class="diag-text" id="verdictText">—</div>
+          </div>
+          <div class="diag-block diag-sugs">
+            <div class="diag-block-title">💡 Sugerencias estratégicas</div>
+            <div id="suggestionsList"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="ctrl-panel" id="ctrlPanel">
+
+      <div class="section">
+        <div class="section-label">Métricas <span style="color:var(--text-dim);font-size:9px">(click para detalle)</span></div>
+        <div class="metrics">
+          <div class="metric" data-metric="focos"><div class="m-label">Focos</div><div class="m-value" id="mFocos">—</div><div class="m-sub">detectados</div></div>
+          <div class="metric" data-metric="atencion"><div class="m-label">Atención</div><div class="m-value" id="mAtt">—</div><div class="m-sub">de 100</div></div>
+          <div class="metric" data-metric="balance"><div class="m-label">Balance</div><div class="m-value" id="mBal">—</div><div class="m-sub">simetría</div></div>
+          <div class="metric" data-metric="score"><div class="m-label">Score</div><div class="m-value" id="mScore">—</div><div class="m-sub">global</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Orientación áurea</div>
+        <div class="orient-grid">
+          <button class="orient-btn" data-orient="tl"><span class="o-arrow">↖</span><span class="o-lbl">Arriba-Izq</span></button>
+          <button class="orient-btn" data-orient="tr"><span class="o-arrow">↗</span><span class="o-lbl">Arriba-Der</span></button>
+          <button class="orient-btn" data-orient="bl"><span class="o-arrow">↙</span><span class="o-lbl">Abajo-Izq</span></button>
+          <button class="orient-btn active" data-orient="br"><span class="o-arrow">↘</span><span class="o-lbl">Abajo-Der</span></button>
+        </div>
+        <p class="hint">Define hacia dónde converge la espiral áurea / ojo Fibonacci</p>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Capas teóricas (11)</div>
+        <div class="toggle-list" id="toggleList">
+          <!-- Inyectadas por JS -->
+        </div>
+        <div class="nfix-row" id="nfixRow">
+          <button class="nfix-btn" data-nfix="5"><span class="nfix-num">5</span><span class="nfix-lbl">Top</span></button>
+          <button class="nfix-btn active" data-nfix="10"><span class="nfix-num">10</span><span class="nfix-lbl">Estándar</span></button>
+          <button class="nfix-btn" data-nfix="15"><span class="nfix-num">15</span><span class="nfix-lbl">Detallado</span></button>
+        </div>
+        <button class="play-scanpath-btn" id="btnPlayScanpath" style="display:none">
+          <span id="playIcon">▶</span> <span id="playText">Reproducir recorrido visual</span>
+        </button>
+      </div>
+
+    </aside>
+  </div>
+
+  <!-- ═══════════════ A/B TEST MODE ═══════════════ -->
+  <div class="ab-area" id="abPanel">
+    <div class="ab-grid">
+      <div class="ab-card">
+        <h3>OPCIÓN A</h3>
+        <div class="ab-dz" id="abDzA">
+          <div style="font-size:36px;opacity:.5">📷</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:8px;text-transform:uppercase;letter-spacing:.1em">Sube imagen A</div>
+        </div>
+      </div>
+      <div class="ab-card">
+        <h3>OPCIÓN B</h3>
+        <div class="ab-dz" id="abDzB">
+          <div style="font-size:36px;opacity:.5">📷</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:8px;text-transform:uppercase;letter-spacing:.1em">Sube imagen B</div>
+        </div>
+      </div>
+    </div>
+    <div class="ab-results" id="abResults">
+      <div class="ab-winner" id="abWinner">—</div>
+      <table class="ab-table" id="abTable">
+        <thead>
+          <tr>
+            <th style="text-align:left">Métrica</th>
+            <th>Opción A</th>
+            <th>Opción B</th>
+            <th>Diferencia</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="abRowFocos"><td class="label">Focos detectados</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr id="abRowAtt"><td class="label">Atención (de 100)</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr id="abRowBal"><td class="label">Balance / simetría</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr id="abRowScore"><td class="label">SCORE GLOBAL</td><td>—</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:14px;font-size:11px;color:var(--text-dim);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;text-align:center">Diferencia &lt; 5 puntos = empate técnico · &gt; 10 puntos = diferencia significativa</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════ POPUP DE MÉTRICAS ═══════════════ -->
+  <div class="metric-popup" id="metricPopup">
+    <div class="metric-popup-content">
+      <h3 id="popupTitle">—</h3>
+      <p id="popupDesc">—</p>
+      <div class="mp-formula" id="popupFormula">—</div>
+      <p id="popupInterp">—</p>
+      <div class="mp-reading">
+        <strong>Lectura para tu pieza</strong>
+        <span id="popupReading">—</span>
+      </div>
+      <button class="metric-popup-close" id="popupClose">Cerrar</button>
+    </div>
+  </div>
+
+</div>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   EyeRubi Web v15 — Núcleo
+   Javier Fernando Rubiano Espinosa · VISORIA Intelligence
+   ═══════════════════════════════════════════════════════════════ */
+
+const PHI = (1+Math.sqrt(5))/2;
+const $ = id => document.getElementById(id);
+
+/* ───────────────────────────────────────────
+   CLAVES DE ACCESO
+   El usuario debe escribir la PRIMERA PALABRA de una página específica del libro.
+   Esto garantiza que tiene el libro físico/digital en su poder.
+   ─────────────────────────────────────────── */
+const KEYS_BY_PAGE = [
+  {page: 12,  word: 'privilegio'},
+  {page: 28,  word: 'basandonos'},
+  {page: 45,  word: 'priming'},
+  {page: 67,  word: 'el'},
+  {page: 72,  word: 'medidas'},
+  {page: 89,  word: 'hacia'},
+  {page: 103, word: 'su'},
+  {page: 128, word: 'se'},
+  {page: 145, word: 'cognicion'},
+  {page: 178, word: 'how'}
+];
+const KEYS_GENERIC = [
+  {word: 'espinosa', label: 'acceso permanente'},
+  {word: 'aplicado', label: 'acceso temporal hasta 30 mayo 2026', expires: new Date('2026-05-30').getTime()}
+];
+
+let currentChallenge = null; // {page, word} actual
+
+function normalizeKey(k){
+  return (k||'').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+function checkSession(){
+  // DESACTIVADO: siempre pedir clave al cargar la app
+  // (esto evita cualquier problema de sesión guardada corrupta de versiones anteriores)
+  // Adicionalmente: limpiamos cualquier sesión vieja de localStorage de forma silenciosa
+  try{
+    Object.keys(localStorage).forEach(k => {
+      if(k.toLowerCase().includes('eyerubi')) localStorage.removeItem(k);
+    });
+  }catch(e){}
+  return false;
+}
+
+function saveSession(){
+  // No-op: ya no guardamos sesión
+}
+
+function pickChallenge(){
+  // Elegir una página aleatoria del listado
+  currentChallenge = KEYS_BY_PAGE[Math.floor(Math.random() * KEYS_BY_PAGE.length)];
+  const ch = document.getElementById('pageChallenge');
+  if(ch){
+    ch.innerHTML = `Digita la <strong style="color:var(--gold)">primera palabra</strong> de la <strong style="color:var(--gold)">página ${currentChallenge.page}</strong> del libro.`;
+  }
+}
+
+function validateKey(k){
+  const norm = normalizeKey(k);
+  // Validar contra el reto actual de la página
+  if(currentChallenge && norm === currentChallenge.word) return true;
+  // Validar contra claves genéricas
+  for(const g of KEYS_GENERIC){
+    if(norm === g.word){
+      if(g.expires && Date.now() > g.expires) return 'expired';
+      return true;
+    }
+  }
+  return false;
+}
+
+function showApp(){
+  try {
+    $('login').style.display = 'none';
+    $('app').classList.add('active');
+    buildToggles();
+    initTemplateInteraction();
+  } catch(e){
+    console.error('Error al cargar app:', e);
+    // Fallback: si falla, dejar el login visible con un mensaje
+    if($('login')) $('login').style.display = 'flex';
+    if($('app')) $('app').classList.remove('active');
+    // Cargar el reto para que el usuario pueda intentar de nuevo
+    try { pickChallenge(); } catch(_){}
+    const err = $('loginError');
+    if(err){
+      err.textContent = 'Error al cargar. Pulsa "Limpiar sesión" y vuelve a intentar.';
+      err.classList.add('show');
+    }
+  }
+}
+
+// Inicio robusto — si hay error de sesión, mostrar login normal
+try {
+  if(checkSession()){
+    showApp();
+  }else{
+    pickChallenge();
+  }
+} catch(e){
+  console.error('Error en inicialización:', e);
+  try { pickChallenge(); } catch(_){}
+}
+
+$('loginBtn').addEventListener('click', ()=>{
+  const k = $('loginKey').value;
+  const result = validateKey(k);
+  const err = $('loginError');
+  if(result === true){
+    saveSession();
+    showApp();
+  }else if(result === 'expired'){
+    err.textContent = 'Esta clave ha expirado. Solicita una nueva.';
+    err.classList.add('show');
+  }else{
+    err.textContent = `Palabra incorrecta. Verifica la página ${currentChallenge.page} del libro e intenta de nuevo.`;
+    err.classList.add('show');
+    // Cambiar el reto después de 2 errores para evitar fuerza bruta
+    if(!window._loginAttempts) window._loginAttempts = 0;
+    window._loginAttempts++;
+    if(window._loginAttempts >= 2){
+      window._loginAttempts = 0;
+      setTimeout(()=>{ pickChallenge(); err.classList.remove('show'); $('loginKey').value=''; }, 1500);
+    }
+  }
+});
+$('loginKey').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') $('loginBtn').click();
+});
+
+// Botón "Limpiar sesión guardada" — útil si la sesión vieja de v23/v24 está corrupta
+$('clearSessionBtn').addEventListener('click', ()=>{
+  try {
+    localStorage.removeItem('eyerubi_session');
+    localStorage.removeItem('eyerubi-session');
+    localStorage.removeItem('session');
+    // Limpiar TODO localStorage de eyerubi como precaución
+    Object.keys(localStorage).forEach(k => {
+      if(k.toLowerCase().includes('eyerubi')) localStorage.removeItem(k);
+    });
+  } catch(e){}
+  // Mostrar confirmación visual
+  const btn = $('clearSessionBtn');
+  const original = btn.textContent;
+  btn.textContent = '✓ Sesión limpiada — recarga la página';
+  btn.style.color = 'var(--teal)';
+  btn.style.borderColor = 'var(--teal)';
+  setTimeout(()=>{
+    location.reload();
+  }, 1500);
+});
+
+/* ───────────────────────────────────────────
+   ESTADO GLOBAL
+   ─────────────────────────────────────────── */
+const state = {
+  img: null,           // HTMLImageElement
+  W: 0, H: 0,          // Tamaño real de la imagen
+  displayW: 0,         // Tamaño que se muestra (escalado)
+  displayH: 0,
+  sal: null,           // Mapa de saliencia
+  focos: [],           // Focos detectados, ordenados por saliencia
+  scanpath: [],        // Recorrido ocular (subset de focos)
+  nFix: 10,            // Cantidad de fijaciones a mostrar
+  orient: 'br',        // Orientación áurea: br, bl, tr, tl
+  layers: {            // Toggles de capas
+    tercios: false,
+    phigrid: false,
+    fibonacci: false,
+    simetria: false,
+    diagonales: false,
+    cuartos: false,
+    patronZ: false,
+    patronF: false,
+    seguimiento: false,
+    heatmap: false,
+    opacityMap: false
+  },
+  analysis: null,      // Resultados del análisis
+  activeContextLayer: null, // Capa que se muestra en el panel contextual
+  // A/B
+  abA: null, abB: null,
+  // Plantilla Áurea interactiva (v23)
+  template: {
+    // Posición y tamaño en coordenadas de imagen
+    // Por defecto ajustada al lienzo
+    x: 0, y: 0,
+    w: 1000, h: 618,
+    // Flips
+    flipH: false,  // espejo horizontal
+    flipV: false,  // espejo vertical
+    // Estado interno: si ya fue inicializada
+    initialized: false
+  },
+  // Estado de interacción (drag)
+  dragMode: null,  // null, 'move', 'resize-tl', 'resize-tr', 'resize-bl', 'resize-br'
+  dragStart: null
+};
+
+/* ───────────────────────────────────────────
+   CONFIGURACIÓN DE CAPAS
+   ─────────────────────────────────────────── */
+const LAYERS_CONFIG = [
+  {
+    key:'tercios', label:'Regla de los tercios', color:'#9CA3AF',
+    theory: `<strong>Teoría — Regla de los tercios</strong>
+      Divide la imagen en 9 partes iguales mediante 2 líneas horizontales y 2 verticales. Los <em>4 puntos de intersección</em> son los lugares más naturales donde la mirada se posa. Originada en la pintura renacentista y formalizada por <em>John Thomas Smith (1797)</em>, es la heurística más usada por fotógrafos y diseñadores.
+      <br><br>Lectura: si tu foco principal cae sobre uno de los 4 puntos áureos, la composición tiene jerarquía visual natural.`
+  },
+  {
+    key:'phigrid', label:'Cuadrícula áurea (φ)', color:'#E4B04A',
+    theory: `<strong>Teoría — Cuadrícula áurea</strong>
+      Versión refinada de los tercios usando la proporción φ = <em>1.618</em>. Las líneas se sitúan en las posiciones <em>1/φ</em> y <em>1 − 1/φ</em>, produciendo divisiones percibidas como más armónicas que los tercios simples.
+      <br><br>Aplicación: marcas como <em>Apple, Twitter y National Geographic</em> usan esta proporción en sus logos y layouts.`
+  },
+  {
+    key:'fibonacci', label:'🌀 Plantilla Áurea (interactiva)', color:'#F59E0B',
+    theory: `<strong>Teoría — Plantilla Áurea interactiva</strong>
+      Inspirada en aplicaciones profesionales como <em>AuriaCam</em>, <em>Golden Ratio Camera</em> y las plantillas de Adobe Photoshop. Activa la plantilla y superpónla sobre tu imagen para evaluar composición áurea.
+      <br><br><strong>Cómo usarla:</strong>
+      <br>• <strong>Arrastra el centro</strong> para mover la plantilla
+      <br>• <strong>Arrastra las manijas de las esquinas</strong> para escalar
+      <br>• <strong>Botones ↔ ↕ ⇆</strong> para voltear horizontal, vertical o ambos
+      <br>• <strong>Botón ⛶</strong> para ajustar al lienzo completo
+      <br>• <strong>Botón ↺</strong> para resetear
+      <br><br><strong>Cuándo aplicarla:</strong> coloca el "ojo" de la espiral sobre el elemento de mayor importancia (rostro, producto, CTA). La cuadrícula Fibonacci se mueve junto con la espiral, mostrando dónde caen los cuadrados áureos en tu imagen.
+      <br><br>Esta es la espiral Fibonacci <em>clásica</em> formada por cuartos de círculo — la que aparece en obras de Da Vinci, el logo de Apple, la Mona Lisa y el nautilus. Los arcos consecutivos se conectan perfectamente en las esquinas compartidas entre cuadrados.`
+  },
+  {
+    key:'simetria', label:'Simetría dinámica', color:'#EC4899',
+    theory: `<strong>Teoría — Simetría dinámica</strong>
+      Sistema desarrollado por <em>Jay Hambidge (1920)</em> basado en root rectangles (√2, √3, √5...). Usa diagonales y perpendiculares para construir composiciones con tensión equilibrada.
+      <br><br>Lectura: las diagonales rosadas marcan las líneas de fuerza. Si tus elementos clave se alinean con ellas, generas dinamismo sin perder balance.`
+  },
+  {
+    key:'diagonales', label:'Diagonales 45°', color:'#8B5CF6',
+    theory: `<strong>Teoría — Diagonales y punto focal</strong>
+      Las diagonales de esquina a esquina y su intersección central marcan el <em>centro geométrico</em> y los ejes de mayor energía perceptual. El cruce central es el punto de equilibrio absoluto.
+      <br><br>Aplicación: úsalo para evaluar si tu pieza está visualmente centrada o desplazada hacia un lado de manera intencional o accidental.`
+  },
+  {
+    key:'cuartos', label:'Ley de cuartos', color:'#06B6D4',
+    theory: `<strong>Teoría — Ley de cuartos</strong>
+      Divide la imagen en 4 cuadrantes iguales (TL, TR, BL, BR). Mide el porcentaje de atención que recibe cada cuadrante con base en los focos visuales detectados.
+      <br><br>Lectura occidental: el orden natural de lectura es <em>TL → TR → BL → BR</em>. Si tu CTA está en BR pero ese cuadrante tiene baja atención (%), considera reubicarlo.`
+  },
+  {
+    key:'patronZ', label:'Patrón Z', color:'#F472B6',
+    theory: `<strong>Teoría — Patrón Z (Nielsen Norman)</strong>
+      Modelo de escaneo visual para piezas <em>poco densas en texto</em>: anuncios, posters, landing pages simples. La mirada hace una "Z": superior izq → superior der → diagonal → inferior izq → inferior der.
+      <br><br>Aplicación: ideal para piezas publicitarias. Coloca tu marca arriba-izq, mensaje clave en diagonal, y CTA en inferior-derecha.`
+  },
+  {
+    key:'patronF', label:'Patrón F', color:'#A78BFA',
+    theory: `<strong>Teoría — Patrón F (Jakob Nielsen, 2006)</strong>
+      Modelo de lectura web para piezas con <em>mucho contenido textual</em>: blogs, catálogos, fichas técnicas. La mirada lee la barra superior, baja, lee una barra más corta, y desciende por la columna izquierda.
+      <br><br>Aplicación: para websites o documentos largos. Coloca palabras clave al inicio de párrafos y subtítulos a la izquierda.`
+  },
+  {
+    key:'seguimiento', label:'👁️ Seguimiento visual', color:'#00B8C4',
+    theory: `<strong>Teoría — Scanpath / Recorrido ocular</strong>
+      Simula el recorrido que el ojo haría sobre la pieza en sus primeros segundos de visualización, basándose en los focos de mayor saliencia (contraste, color, complejidad). Inspirado en estudios de <em>Yarbus (1967)</em> y eye-tracking moderno.
+      <br><br>Lectura: el número <em>1</em> es el primer foco capturado; los demás siguen el orden de saliencia decreciente. Selecciona 5, 10 o 15 fijaciones según el detalle deseado.`
+  },
+  {
+    key:'heatmap', label:'🔥 Heatmap', color:'#EF4444',
+    theory: `<strong>Teoría — Mapa de calor</strong>
+      Visualización que combina los focos visuales detectados en una <em>nube de calor</em>: rojo intenso para zonas de máxima atención, naranja y amarillo para zonas secundarias. Es la representación más usada en estudios de eye-tracking.
+      <br><br>Lectura: identifica de un vistazo dónde se concentra la atención y si esas zonas coinciden con tus elementos estratégicos.`
+  },
+  {
+    key:'opacityMap', label:'🔦 Opacity Map', color:'#FBBF24',
+    theory: `<strong>Teoría — Mapa de opacidad</strong>
+      Inverso del heatmap: oscurece la imagen y solo revela las zonas de mayor atención. Útil para evaluar si tu pieza funciona cuando se ve <em>"de reojo"</em> o en un primer impacto subliminal.
+      <br><br>Aplicación: si al activar Opacity Map no se entiende el mensaje, tu pieza no funciona en condiciones de baja atención (vallas, redes en scroll rápido).`
+  }
+];
+
+function buildToggles(){
+  const list = $('toggleList');
+  list.innerHTML = '';
+  LAYERS_CONFIG.forEach(L => {
+    const wrap = document.createElement('div');
+    wrap.className = 'toggle-wrap';
+    wrap.dataset.key = L.key;
+
+    const tog = document.createElement('label');
+    tog.className = 'toggle';
+    tog.innerHTML = `
+      <span class="tg-dot"></span>
+      <span class="tg-name">${L.label}</span>
+      <span class="tg-color" style="background:${L.color}"></span>
+    `;
+    tog.addEventListener('click', (e)=>{
+      e.preventDefault();
+      state.layers[L.key] = !state.layers[L.key];
+      tog.classList.toggle('active', state.layers[L.key]);
+      wrap.classList.toggle('expanded', state.layers[L.key]);
+      if(L.key === 'seguimiento'){
+        $('nfixRow').classList.toggle('show', state.layers[L.key]);
+        $('btnPlayScanpath').style.display = state.layers[L.key] ? 'flex' : 'none';
+        // Si se desactiva mientras se reproduce, detener
+        if(!state.layers[L.key] && scanAnim.playing) stopScanpathAnimation();
+      }
+      // Mostrar/ocultar controles de plantilla áurea cuando se activa/desactiva fibonacci
+      if(L.key === 'fibonacci'){
+        const tplCtrls = $('templateControls');
+        if(tplCtrls){
+          tplCtrls.style.display = state.layers.fibonacci ? 'flex' : 'none';
+        }
+      }
+      // Si esta capa se activa, mostrarla en el panel contextual
+      if(state.layers[L.key]){
+        state.activeContextLayer = L.key;
+      }else{
+        // Si se desactiva la capa actualmente mostrada, buscar otra activa
+        if(state.activeContextLayer === L.key){
+          state.activeContextLayer = Object.keys(state.layers).find(k => state.layers[k]) || null;
+        }
+      }
+      updateContextPanel();
+      drawAll();
+    });
+
+    const theoryEl = document.createElement('div');
+    theoryEl.className = 'theory';
+    theoryEl.innerHTML = L.theory;
+
+    wrap.appendChild(tog);
+    wrap.appendChild(theoryEl);
+    list.appendChild(wrap);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PANEL CONTEXTUAL: análisis específico por capa activa
+   ═══════════════════════════════════════════════════════════════ */
+
+const CONTEXT_DATA = {
+  tercios: {
+    title: 'Regla de los tercios',
+    theory: 'Divide la imagen en 9 zonas mediante 2 líneas horizontales y 2 verticales en los tercios. Los 4 puntos de intersección son los lugares más naturales donde la mirada se posa al primer vistazo.',
+    formula: '4 puntos áureos: (W/3, H/3), (2W/3, H/3), (W/3, 2H/3), (2W/3, 2H/3)',
+    reading: function(){
+      if(!state.focos.length) return ['Sube una imagen para analizar.'];
+      const W = state.displayW, H = state.displayH;
+      const tps = [{x:W/3,y:H/3,n:'sup-izq'},{x:2*W/3,y:H/3,n:'sup-der'},{x:W/3,y:2*H/3,n:'inf-izq'},{x:2*W/3,y:2*H/3,n:'inf-der'}];
+      const f1 = state.focos[0];
+      let best = null, minD = Infinity;
+      tps.forEach(t=>{const d = Math.hypot(f1.x-t.x, f1.y-t.y); if(d<minD){minD=d;best=t;}});
+      const distPct = (minD / Math.hypot(W,H) * 100).toFixed(1);
+      const res = [
+        `El foco principal (#1) está más cerca del punto áureo ${best.n} (a ${distPct}% de la diagonal).`,
+        `${distPct < 8 ? '✓ Está prácticamente sobre un punto áureo — composición intuitivamente sólida.' : distPct < 15 ? '~ Está cerca pero no sobre un punto áureo. Considera reubicar el elemento clave para alinearlo.' : '✗ El foco principal está lejos de los puntos áureos. La pieza puede sentirse menos natural.'}`
+      ];
+      // Cuántos focos top-5 caen cerca de puntos áureos
+      let nearCount = 0;
+      state.focos.slice(0,5).forEach(f=>{
+        tps.forEach(t=>{ if(Math.hypot(f.x-t.x,f.y-t.y) < Math.hypot(W,H)*0.1) nearCount++; });
+      });
+      res.push(`${nearCount} de los 5 focos principales caen cerca de puntos áureos (ideal: 2 o más).`);
+      return res;
+    }
+  },
+  phigrid: {
+    title: 'Cuadrícula áurea φ',
+    theory: 'Versión refinada de los tercios usando la proporción φ = 1.618. Las líneas se ubican en 1/φ (≈0.382) y 1−1/φ (≈0.618) de cada dimensión, produciendo divisiones percibidas como más armónicas.',
+    formula: 'Líneas verticales: W·0.382, W·0.618 · Líneas horizontales: H·0.382, H·0.618',
+    reading: function(){
+      if(!state.focos.length) return ['Sube una imagen para analizar.'];
+      const W = state.displayW, H = state.displayH;
+      const r = 1/PHI;
+      const tps = [{x:W*(1-r),y:H*(1-r)},{x:W*r,y:H*(1-r)},{x:W*(1-r),y:H*r},{x:W*r,y:H*r}];
+      const f1 = state.focos[0];
+      let minD = Infinity;
+      tps.forEach(t=>{const d = Math.hypot(f1.x-t.x, f1.y-t.y); if(d<minD)minD=d;});
+      const distPct = (minD/Math.hypot(W,H)*100).toFixed(1);
+      return [
+        `Distancia del foco #1 al punto áureo φ más cercano: ${distPct}% de la diagonal.`,
+        `${distPct < 7 ? '✓ Excelente alineación con la proporción áurea.' : '~ Hay espacio para mejorar la alineación con φ.'}`,
+        `La cuadrícula φ es más estricta que tercios. Marcas como Apple y Twitter la usan en sus logos.`
+      ];
+    }
+  },
+  fibonacci: {
+    title: '🌀 Plantilla Áurea interactiva',
+    theory: 'Espiral Fibonacci clásica de cuartos de círculo (la que aparece en Da Vinci, logo de Apple, Mona Lisa) combinada con cuadrícula Fibonacci. Cada cuadrado contribuye un arco de radio = lado del cuadrado, formando una curva continua que converge al "ojo" áureo. Inspirada en apps profesionales como AuriaCam y Golden Ratio Camera.',
+    formula: 'Cuartos de círculo Fibonacci · 8 cuadrados (21, 13, 8, 5, 3, 2, 1, 1)',
+    reading: function(){
+      const W = state.displayW, H = state.displayH;
+      const tpl = state.template;
+      const lines = [];
+
+      // Estado actual de la plantilla
+      const orientName = (!tpl.flipH && !tpl.flipV) ? 'inf-derecha (BR)'
+                       : (tpl.flipH && !tpl.flipV)  ? 'inf-izquierda (BL)'
+                       : (!tpl.flipH && tpl.flipV)  ? 'sup-derecha (TR)'
+                       :                              'sup-izquierda (TL)';
+      lines.push(`Plantilla: ${tpl.w.toFixed(0)}×${tpl.h.toFixed(0)}px en posición (${tpl.x.toFixed(0)}, ${tpl.y.toFixed(0)}).`);
+      lines.push(`Ojo de la espiral: esquina ${orientName} de la plantilla.`);
+
+      // Proporción de la plantilla vs φ
+      const ratio = tpl.w >= tpl.h ? tpl.w/tpl.h : tpl.h/tpl.w;
+      const deviationFromPhi = Math.abs(ratio - PHI) / PHI * 100;
+      if(deviationFromPhi < 3){
+        lines.push(`✓ Plantilla con proporción ${ratio.toFixed(3)} — casi exactamente áurea (φ = 1.618).`);
+      }else{
+        lines.push(`Proporción actual: ${ratio.toFixed(3)} (φ = 1.618 ideal). Ajusta las manijas para acercarte a φ.`);
+      }
+
+      // Análisis de focos dentro de la plantilla
+      if(state.focos && state.focos.length){
+        const insideCount = state.focos.slice(0,10).filter(f =>
+          f.x >= tpl.x && f.x <= tpl.x + tpl.w &&
+          f.y >= tpl.y && f.y <= tpl.y + tpl.h
+        ).length;
+        lines.push(`${insideCount} de los 10 focos principales caen dentro de la plantilla.`);
+
+        // Distancia del foco 1 al "ojo"
+        let eyeX, eyeY;
+        if(!tpl.flipH && !tpl.flipV){       eyeX = tpl.x + tpl.w; eyeY = tpl.y + tpl.h; }
+        else if(tpl.flipH && !tpl.flipV){   eyeX = tpl.x;         eyeY = tpl.y + tpl.h; }
+        else if(!tpl.flipH && tpl.flipV){   eyeX = tpl.x + tpl.w; eyeY = tpl.y;         }
+        else {                              eyeX = tpl.x;         eyeY = tpl.y;         }
+        const f1 = state.focos[0];
+        const dist = Math.hypot(f1.x - eyeX, f1.y - eyeY);
+        const distPct = (dist / Math.hypot(W, H) * 100).toFixed(1);
+        lines.push(`Foco #1 al ojo de la espiral: ${distPct}% de la diagonal del lienzo.`);
+        if(distPct < 15) lines.push('✓ Tu elemento clave está cerca del ojo — la espiral lo enmarca naturalmente.');
+        else lines.push('~ Mueve o redimensiona la plantilla para que el ojo coincida con tu elemento principal.');
+      }
+
+      lines.push('Cómo manipular: arrastra el centro (●) para mover · manijas en esquinas para escalar · botones ↔ ↕ ⇆ para voltear · ⛶ para ajustar al lienzo · ↺ para reset.');
+      return lines;
+    }
+  },
+  simetria: {
+    title: 'Simetría dinámica',
+    theory: 'Sistema desarrollado por Jay Hambidge (1920) basado en root rectangles (√2, √3, √5...). Las diagonales y perpendiculares forman líneas de fuerza donde se alinean los elementos principales.',
+    formula: 'Diagonales + ejes medios + intersecciones con esquinas',
+    reading: function(){
+      return [
+        'Las diagonales rosadas marcan las líneas de fuerza dinámica.',
+        'Verifica si tus elementos clave (rostros, productos, CTAs) tocan o se alinean con estas diagonales.',
+        'La simetría dinámica genera tensión equilibrada — útil para piezas con movimiento implícito.'
+      ];
+    }
+  },
+  diagonales: {
+    title: 'Diagonales 45°',
+    theory: 'Las diagonales de esquina a esquina marcan los ejes de mayor energía perceptual. Su intersección (centro geométrico) es el punto de equilibrio absoluto. Usadas desde el Renacimiento.',
+    formula: 'Diagonal principal: (0,0)→(W,H) · Contradiagonal: (W,0)→(0,H)',
+    reading: function(){
+      if(!state.focos.length) return ['Sube una imagen para analizar.'];
+      const W = state.displayW, H = state.displayH;
+      const f1 = state.focos[0];
+      const distCentro = Math.hypot(f1.x - W/2, f1.y - H/2);
+      const pct = (distCentro / Math.hypot(W,H) * 100).toFixed(1);
+      return [
+        `Distancia del foco #1 al centro geométrico: ${pct}% de la diagonal.`,
+        `${pct < 10 ? '✓ Foco muy cerca del centro — composición simétrica clásica.' : '~ Foco fuera del centro — composición dinámica.'}`,
+        `Diagonal principal va de TL a BR; contradiagonal de TR a BL.`
+      ];
+    }
+  },
+  cuartos: {
+    title: 'Ley de cuartos',
+    theory: 'Divide la imagen en 4 cuadrantes iguales. Mide qué porcentaje de la atención visual recibe cada cuadrante con base en los focos detectados.',
+    formula: 'Cada cuadrante = mitad horizontal × mitad vertical de la imagen',
+    reading: function(){
+      if(!state.focos.length) return ['Sube una imagen para analizar.'];
+      const W = state.displayW, H = state.displayH;
+      const quads = [0,0,0,0];
+      state.focos.slice(0,10).forEach(f => {
+        const i = (f.y > H/2 ? 2 : 0) + (f.x > W/2 ? 1 : 0);
+        quads[i] += f.v;
+      });
+      const sum = quads.reduce((a,b)=>a+b,0) || 1;
+      const names = ['Sup-Izq','Sup-Der','Inf-Izq','Inf-Der'];
+      const pcts = quads.map(q => Math.round(q/sum*100));
+      const maxIdx = pcts.indexOf(Math.max(...pcts));
+      return [
+        `Distribución: ${names.map((n,i)=>`${n}=${pcts[i]}%`).join(' · ')}`,
+        `El cuadrante ${names[maxIdx]} concentra la mayor atención (${pcts[maxIdx]}%).`,
+        `${pcts[maxIdx] > 50 ? '⚠️ Atención muy concentrada en un cuadrante — considera distribuir mejor.' : '✓ Distribución aceptable de atención.'}`
+      ];
+    }
+  },
+  patronZ: {
+    title: 'Patrón Z',
+    theory: 'Modelo de escaneo visual de Nielsen Norman para piezas poco densas en texto (anuncios, posters, landing pages). El ojo hace una "Z": superior-izq → superior-der → diagonal → inferior-izq → inferior-der.',
+    formula: '5 puntos clave: (0.12W, 0.18H) → (0.88W, 0.18H) → (0.5W, 0.5H) → (0.12W, 0.82H) → (0.88W, 0.82H)',
+    reading: function(){
+      return [
+        'Ideal para piezas publicitarias o de baja densidad textual.',
+        'Coloca tu MARCA en el punto 1 (superior-izq).',
+        'Mensaje clave en el punto 3 (centro).',
+        'CTA (call to action) en el punto 5 (inferior-der).'
+      ];
+    }
+  },
+  patronF: {
+    title: 'Patrón F',
+    theory: 'Modelo de lectura web descubierto por Jakob Nielsen en 2006 mediante eye-tracking sobre miles de páginas. Aplica a piezas con mucho contenido textual: blogs, catálogos, fichas técnicas.',
+    formula: 'Barra superior + barra media + columna izquierda forman la letra F',
+    reading: function(){
+      return [
+        'Ideal para websites con mucho texto o catálogos.',
+        'Las primeras palabras de cada párrafo son leídas con mayor probabilidad.',
+        'Coloca palabras clave al inicio de cada bullet o párrafo.',
+        'Subtítulos a la izquierda funcionan mejor que centrados.'
+      ];
+    }
+  },
+  seguimiento: {
+    title: 'Seguimiento visual (scanpath)',
+    theory: 'Simula el recorrido del ojo en los primeros segundos de visualización, basándose en los focos de mayor saliencia. Inspirado en estudios de Yarbus (1967) y eye-tracking moderno.',
+    formula: 'Orden = ranking de saliencia descendente · Salto entre puntos = sacada visual simulada',
+    reading: function(){
+      if(!state.scanpath.length) return ['Sube una imagen para analizar.'];
+      const W = state.displayW, H = state.displayH;
+      const p1 = state.scanpath[0];
+      const cuad = (p1.y > H/2 ? 'inferior' : 'superior') + '-' + (p1.x > W/2 ? 'derecha' : 'izquierda');
+      // Distancia total recorrida
+      let total = 0;
+      for(let i=1; i<state.scanpath.length; i++){
+        total += Math.hypot(state.scanpath[i].x-state.scanpath[i-1].x, state.scanpath[i].y-state.scanpath[i-1].y);
+      }
+      const totalPct = (total / Math.hypot(W,H) * 100).toFixed(0);
+      return [
+        `Primer foco capturado: cuadrante ${cuad}.`,
+        `Total de fijaciones mostradas: ${state.scanpath.length} (usa los botones 5/10/15 para cambiar).`,
+        `Distancia total recorrida por el ojo: ${totalPct}% de la diagonal.`,
+        `${totalPct < 150 ? '✓ Recorrido compacto — atención bien concentrada.' : '~ Recorrido amplio — atención dispersa.'}`
+      ];
+    }
+  },
+  heatmap: {
+    title: 'Heatmap (mapa de calor)',
+    theory: 'Visualización clásica de eye-tracking: rojo intenso para zonas de máxima atención, naranja y amarillo para zonas secundarias. Combina la intensidad de todos los focos detectados.',
+    formula: 'Cada foco genera un gradiente radial con intensidad ∝ saliencia',
+    reading: function(){
+      if(!state.focos.length) return ['Sube una imagen para analizar.'];
+      const maxV = state.focos[0].v;
+      const numHot = state.focos.filter(f => f.v > 0.7).length;
+      return [
+        `Foco más intenso: ${(maxV*100).toFixed(0)}/100.`,
+        `Zonas de calor alto (>70%): ${numHot}.`,
+        `${numHot === 1 ? '✓ Un punto claramente dominante.' : numHot <= 3 ? '✓ Jerarquía clara.' : '~ Múltiples puntos compitiendo — revisa si es intencional.'}`,
+        `El heatmap se interpreta como en estudios reales de eye-tracking.`
+      ];
+    }
+  },
+  opacityMap: {
+    title: 'Opacity Map',
+    theory: 'Inverso al heatmap: oscurece la imagen revelando solo las zonas de mayor atención. Útil para evaluar cómo se ve la pieza en condiciones de baja atención (vallas, scroll rápido, redes sociales).',
+    formula: 'Capa oscura + recortes (destination-out) en focos principales',
+    reading: function(){
+      return [
+        'Pregunta clave: ¿se entiende el mensaje viendo solo las zonas reveladas?',
+        'Si NO se entiende, la pieza falla en condiciones de baja atención.',
+        'Aplicable a vallas publicitarias, banners en scroll rápido, anuncios en feeds.',
+        'Si SÍ se entiende, tu pieza funciona incluso con vista periférica.'
+      ];
+    }
+  }
+};
+
+function updateContextPanel(){
+  const cpanel = $('contextPanel');
+  const dpanel = $('diagPanel');
+
+  if(!state.activeContextLayer || !CONTEXT_DATA[state.activeContextLayer]){
+    // No hay capa activa → mostrar diagnóstico + sugerencias (si hay análisis)
+    cpanel.classList.remove('show');
+    if(state.analysis){
+      dpanel.style.display = 'block';
+    }else{
+      dpanel.style.display = 'none';
+    }
+    return;
+  }
+  // Hay capa activa → mostrar panel contextual, ocultar diagnóstico
+  dpanel.style.display = 'none';
+
+  const d = CONTEXT_DATA[state.activeContextLayer];
+  $('cpTitle').textContent = d.title;
+  $('cpTheory').textContent = d.theory;
+  if(d.formula){
+    $('cpFormula').textContent = d.formula;
+    $('cpFormula').style.display = 'block';
+  }else{
+    $('cpFormula').style.display = 'none';
+  }
+  const readings = d.reading();
+  const ul = $('cpReading');
+  ul.innerHTML = readings.map(r => `<li>${r}</li>`).join('');
+  cpanel.classList.add('show');
+}
+
+/* ───────────────────────────────────────────
+   UPLOAD DE IMAGEN
+   ─────────────────────────────────────────── */
+const dropzone = $('dropzone');
+const fileInput = $('fileInput');
+
+dropzone.addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', e=>{
+  if(e.target.files && e.target.files[0]) loadImage(e.target.files[0]);
+});
+
+['dragenter','dragover'].forEach(ev=>{
+  dropzone.addEventListener(ev, e=>{
+    e.preventDefault(); e.stopPropagation();
+    dropzone.classList.add('drag');
+  });
+});
+['dragleave','drop'].forEach(ev=>{
+  dropzone.addEventListener(ev, e=>{
+    e.preventDefault(); e.stopPropagation();
+    dropzone.classList.remove('drag');
+  });
+});
+dropzone.addEventListener('drop', e=>{
+  const f = e.dataTransfer.files[0];
+  if(f && f.type.startsWith('image/')) loadImage(f);
+});
+
+function loadImage(file){
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      state.img = img;
+      state.W = img.width;
+      state.H = img.height;
+      initCanvas();
+      $('dropzone').classList.add('hidden');
+      $('cvWrap').classList.add('active');
+      $('loading').classList.add('show');
+      // Pequeño delay para que se vea el loading
+      setTimeout(()=>{
+        analyzeImage();
+        $('loading').classList.remove('show');
+      }, 100);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ───────────────────────────────────────────
+   CANVAS — ALINEAMIENTO PERFECTO
+   La clave: canvas y SVG con el mismo viewBox y dimensiones absolutas.
+   El cv-stage se ajusta al canvas (que tiene tamaño nativo de la imagen
+   escalada al ancho del contenedor); todos los demás canvas y el SVG
+   tienen las MISMAS dimensiones absolutas en píxeles.
+   ─────────────────────────────────────────── */
+function initCanvas(){
+  const W = state.W, H = state.H;
+
+  // Calcular tamaño de visualización (cabe en pantalla)
+  const maxW = Math.min($('cvWrap').clientWidth || 700, 900);
+  const maxH = 560;
+  let dw = W, dh = H;
+  const ratio = W/H;
+  if(dw > maxW){ dw = maxW; dh = dw/ratio; }
+  if(dh > maxH){ dh = maxH; dw = dh*ratio; }
+
+  state.displayW = Math.round(dw);
+  state.displayH = Math.round(dh);
+
+  // Ajustar TODOS los elementos al mismo tamaño exacto
+  const stage = $('cvStage');
+  stage.style.width = state.displayW + 'px';
+  stage.style.height = state.displayH + 'px';
+
+  const canvases = ['imgCanvas','heatmapCanvas','opacityCanvas'];
+  canvases.forEach(id => {
+    const c = $(id);
+    c.width = state.displayW;
+    c.height = state.displayH;
+    c.style.width = state.displayW + 'px';
+    c.style.height = state.displayH + 'px';
+  });
+
+  const svg = $('overlaySvg');
+  svg.setAttribute('width', state.displayW);
+  svg.setAttribute('height', state.displayH);
+  svg.setAttribute('viewBox', `0 0 ${state.displayW} ${state.displayH}`);
+  svg.style.width = state.displayW + 'px';
+  svg.style.height = state.displayH + 'px';
+
+  // Dibujar la imagen
+  const ctx = $('imgCanvas').getContext('2d');
+  ctx.clearRect(0, 0, state.displayW, state.displayH);
+  ctx.drawImage(state.img, 0, 0, state.displayW, state.displayH);
+
+  // Reset de la plantilla áurea CON PROPORCIÓN ÁUREA (1.618)
+  // La plantilla ocupa ~90% de la imagen, manteniendo la proporción φ
+  // y se centra dentro del lienzo. Así la cuadrícula Fibonacci siempre se ve perfecta.
+  const dW = state.displayW, dH = state.displayH;
+  let tplW, tplH;
+  // Decidir orientación de la plantilla según el lienzo
+  if(dW >= dH){
+    // Lienzo horizontal: plantilla horizontal áurea
+    tplH = dH * 0.90;
+    tplW = tplH * PHI;
+    if(tplW > dW * 0.95){
+      tplW = dW * 0.95;
+      tplH = tplW / PHI;
+    }
+  }else{
+    // Lienzo vertical: plantilla vertical áurea
+    tplW = dW * 0.90;
+    tplH = tplW * PHI;
+    if(tplH > dH * 0.95){
+      tplH = dH * 0.95;
+      tplW = tplH / PHI;
+    }
+  }
+  state.template.x = (dW - tplW) / 2;
+  state.template.y = (dH - tplH) / 2;
+  state.template.w = tplW;
+  state.template.h = tplH;
+  state.template.flipH = false;
+  state.template.flipV = false;
+  state.template.initialized = true;
+
+  $('imgInfo').textContent = `${W} × ${H} px · ratio ${(W/H).toFixed(3)} · φ=${PHI.toFixed(3)}`;
+}
+
+/* ───────────────────────────────────────────
+   RESET
+   ─────────────────────────────────────────── */
+$('btnReset').addEventListener('click', ()=>{
+  state.img = null;
+  state.sal = null;
+  state.focos = [];
+  state.scanpath = [];
+  state.analysis = null;
+  state.activeContextLayer = null;
+  Object.keys(state.layers).forEach(k => state.layers[k] = false);
+  // Reset plantilla
+  state.template.initialized = false;
+  state.template.flipH = false;
+  state.template.flipV = false;
+  // Ocultar controles de plantilla
+  if($('templateControls')) $('templateControls').style.display = 'none';
+  document.querySelectorAll('.toggle').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.toggle-wrap').forEach(t => t.classList.remove('expanded'));
+  $('contextPanel').classList.remove('show');
+  $('diagPanel').style.display = 'none';
+  $('cvWrap').classList.remove('active');
+  $('dropzone').classList.remove('hidden');
+  fileInput.value = '';
+  $('nfixRow').classList.remove('show');
+  $('btnPlayScanpath').style.display = 'none';
+  if(scanAnim && scanAnim.playing) stopScanpathAnimation();
+  ['mFocos','mAtt','mBal','mScore'].forEach(id => $(id).textContent = '—');
+  $('btnDocx').disabled = true;
+  $('btnPdf').disabled = true;
+});
+
+/* ───────────────────────────────────────────
+   MODE TABS
+   ─────────────────────────────────────────── */
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', ()=>{
+    const mode = tab.dataset.mode;
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    $('individualPanel').style.display = mode === 'individual' ? 'grid' : 'none';
+    $('abPanel').classList.toggle('active', mode === 'ab');
+  });
+});
+
+/* ───────────────────────────────────────────
+   ORIENT BUTTONS
+   ─────────────────────────────────────────── */
+document.querySelectorAll('.orient-btn').forEach(b => {
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.orient-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    state.orient = b.dataset.orient;
+    updateContextPanel();
+    drawAll();
+  });
+});
+
+/* ───────────────────────────────────────────
+   N-FIX BUTTONS
+   ─────────────────────────────────────────── */
+document.querySelectorAll('.nfix-btn').forEach(b => {
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.nfix-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    state.nFix = parseInt(b.dataset.nfix);
+    updateScanpath();
+    updateContextPanel();
+    drawAll();
+  });
+});
+
+function updateScanpath(){
+  if(!state.focos.length) return;
+  state.scanpath = state.focos.slice(0, Math.min(state.nFix, state.focos.length));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMACIÓN DE SCANPATH (estilo eye-tracker Tobii / iMotions)
+   Un círculo se mueve siguiendo los focos en orden, con estela.
+   ═══════════════════════════════════════════════════════════════ */
+
+const scanAnim = {
+  playing: false,
+  startTime: 0,
+  rafId: null,
+  trail: [], // historial de posiciones para la estela
+  // Tiempos MÁS RÁPIDOS (Javier pidió velocidad)
+  fixationMs: 300,  // tiempo en cada punto (antes 600)
+  saccadeMs: 120,   // tiempo de movimiento entre puntos (antes 200)
+  // Estado actual
+  currentIdx: 0,
+  currentPhase: 'fixation' // 'fixation' o 'saccade'
+};
+
+function startScanpathAnimation(){
+  if(scanAnim.playing) return stopScanpathAnimation();
+  if(!state.scanpath || state.scanpath.length < 2) return;
+  scanAnim.playing = true;
+  scanAnim.startTime = performance.now();
+  scanAnim.trail = [];
+  scanAnim.currentIdx = 0;
+  scanAnim.currentPhase = 'fixation';
+
+  const btn = $('btnPlayScanpath');
+  btn.classList.add('playing');
+  $('playIcon').textContent = '■';
+  $('playText').textContent = 'Detener recorrido';
+
+  scanAnim.rafId = requestAnimationFrame(animateScanpath);
+}
+
+function stopScanpathAnimation(){
+  scanAnim.playing = false;
+  if(scanAnim.rafId) cancelAnimationFrame(scanAnim.rafId);
+  scanAnim.trail = [];
+  const btn = $('btnPlayScanpath');
+  btn.classList.remove('playing');
+  $('playIcon').textContent = '▶';
+  $('playText').textContent = 'Reproducir recorrido visual';
+  // Re-dibujar para volver al estado estático
+  drawAll();
+}
+
+function animateScanpath(now){
+  if(!scanAnim.playing) return;
+  if(!state.scanpath || state.scanpath.length < 2){ stopScanpathAnimation(); return; }
+
+  const elapsed = now - scanAnim.startTime;
+  const totalPerStep = scanAnim.fixationMs + scanAnim.saccadeMs;
+  const N = state.scanpath.length;
+  const totalDur = totalPerStep * N + scanAnim.fixationMs;
+
+  if(elapsed >= totalDur){
+    // Animación completa
+    stopScanpathAnimation();
+    return;
+  }
+
+  // Calcular posición actual del "ojo"
+  const stepF = elapsed / totalPerStep;
+  const idx = Math.min(Math.floor(stepF), N - 1);
+  const stepProgress = stepF - idx; // 0-1 dentro del step
+  // 0 a (fix/total) → fijación; resto → sacada
+  const fixRatio = scanAnim.fixationMs / totalPerStep;
+
+  let curX, curY;
+  if(stepProgress < fixRatio || idx >= N - 1){
+    // Fijación: estamos en el foco actual
+    curX = state.scanpath[idx].x;
+    curY = state.scanpath[idx].y;
+  }else{
+    // Sacada: interpolar al siguiente foco
+    const saccadeProgress = (stepProgress - fixRatio) / (1 - fixRatio);
+    // Easing: cubic ease-in-out
+    const t = saccadeProgress < 0.5
+      ? 4 * saccadeProgress * saccadeProgress * saccadeProgress
+      : 1 - Math.pow(-2 * saccadeProgress + 2, 3) / 2;
+    const from = state.scanpath[idx];
+    const to = state.scanpath[idx + 1];
+    curX = from.x + (to.x - from.x) * t;
+    curY = from.y + (to.y - from.y) * t;
+  }
+
+  // Agregar al trail (con timestamp para fade)
+  scanAnim.trail.push({x: curX, y: curY, t: now});
+  // Limitar trail a últimos 800ms
+  const trailDur = 800;
+  scanAnim.trail = scanAnim.trail.filter(p => (now - p.t) <= trailDur);
+
+  // Dibujar la animación encima del overlay
+  drawScanpathAnimation(curX, curY, idx, stepProgress, fixRatio);
+
+  scanAnim.rafId = requestAnimationFrame(animateScanpath);
+}
+
+function drawScanpathAnimation(curX, curY, idx, stepProgress, fixRatio){
+  const svg = $('overlaySvg');
+  // CRÍTICO: re-dibujar todas las capas estáticas primero, así el ojito queda ENCIMA
+  // (de otro modo, la cuadrícula Fibonacci, manijas, etc. tapan al ojo)
+  drawSvgLayers();
+  // Eliminar elementos animados previos (los de scanpath estático)
+  svg.querySelectorAll('.scan-anim').forEach(el => el.remove());
+
+  const W = state.displayW, H = state.displayH;
+
+  // Re-dibujar las capas estáticas (excepto seguimiento, que la reemplazamos por la animación)
+  // Para no romper rendimiento, solo dibujo los elementos de la animación encima.
+
+  // Dibujar trail con fade
+  const now = performance.now();
+  const trailDur = 800;
+  if(scanAnim.trail.length > 1){
+    let pathD = '';
+    scanAnim.trail.forEach((p, i) => {
+      if(i === 0) pathD += `M ${p.x.toFixed(1)} ${p.y.toFixed(1)} `;
+      else pathD += `L ${p.x.toFixed(1)} ${p.y.toFixed(1)} `;
+    });
+    // Trail principal con gradiente de opacidad simulado por trazo grueso semi-transparente
+    const trailPath = svgEl('path', {
+      d: pathD,
+      fill:'none',
+      stroke:'rgba(228,176,74,0.5)',
+      'stroke-width': 8,
+      'stroke-linecap':'round',
+      'stroke-linejoin':'round',
+      class:'scan-anim'
+    });
+    svg.appendChild(trailPath);
+    const trailPath2 = svgEl('path', {
+      d: pathD,
+      fill:'none',
+      stroke:'#FBBF24',
+      'stroke-width': 3,
+      'stroke-linecap':'round',
+      'stroke-linejoin':'round',
+      class:'scan-anim'
+    });
+    svg.appendChild(trailPath2);
+  }
+
+  // Dibujar puntos ya visitados (con número)
+  for(let i = 0; i <= idx && i < state.scanpath.length; i++){
+    const p = state.scanpath[i];
+    const isCurrent = (i === idx && stepProgress < fixRatio);
+
+    // Halo exterior
+    svg.appendChild(svgEl('circle', {
+      cx: p.x, cy: p.y, r: 18,
+      fill:'rgba(0,184,196,0.15)',
+      stroke:'rgba(0,184,196,0.5)',
+      'stroke-width': 1,
+      class:'scan-anim'
+    }));
+    // Punto principal
+    svg.appendChild(svgEl('circle', {
+      cx: p.x, cy: p.y, r: 12,
+      fill: isCurrent ? '#FBBF24' : '#00B8C4',
+      stroke:'#0A1628',
+      'stroke-width': 2,
+      class:'scan-anim'
+    }));
+    // Número
+    const txt = svgEl('text', {
+      x: p.x, y: p.y + 4,
+      'text-anchor':'middle',
+      fill: isCurrent ? '#0A1628' : '#FFFFFF',
+      'font-family':'JetBrains Mono',
+      'font-size': 11,
+      'font-weight': 700,
+      class:'scan-anim'
+    });
+    txt.textContent = i + 1;
+    svg.appendChild(txt);
+  }
+
+  // Cursor activo grande (representa la mirada en movimiento)
+  // Icono de OJO en SVG con parpadeo y movimiento de pupila
+  const pulse = (Math.sin(now / 200) + 1) / 2; // 0-1 para pulsación sutil
+  const isFixating = (stepProgress < fixRatio);
+
+  // Halo pulsante exterior (más visible cuando está fijando)
+  const haloR = 18 + pulse * 3;
+  svg.appendChild(svgEl('circle', {
+    cx: curX, cy: curY, r: haloR,
+    fill:'none',
+    stroke: isFixating ? '#FBBF24' : 'rgba(228,176,74,0.4)',
+    'stroke-width': 2,
+    opacity: 0.65,
+    class:'scan-anim'
+  }));
+
+  // ─── Icono de OJO (más pequeño según pedido de Javier) ───
+  // Tamaño del ojo: ~60% del tamaño anterior
+  const eyeW = 16;  // semi-ancho (antes 26)
+  const eyeH = 9;   // semi-alto (antes 14)
+
+  // Forma del ojo (almendra) usando dos arcos Bezier
+  // path: M (left) C top-curve (right) C bottom-curve (left)
+  const eyePath =
+    'M ' + (curX - eyeW) + ' ' + curY + ' ' +
+    'C ' + (curX - eyeW) + ' ' + (curY - eyeH*1.3) + ', ' +
+           (curX + eyeW) + ' ' + (curY - eyeH*1.3) + ', ' +
+           (curX + eyeW) + ' ' + curY + ' ' +
+    'C ' + (curX + eyeW) + ' ' + (curY + eyeH*1.3) + ', ' +
+           (curX - eyeW) + ' ' + (curY + eyeH*1.3) + ', ' +
+           (curX - eyeW) + ' ' + curY + ' Z';
+
+  // Sombra suave del ojo
+  svg.appendChild(svgEl('path', {
+    d: eyePath,
+    fill:'rgba(10,22,40,0.7)',
+    stroke:'none',
+    class:'scan-anim',
+    transform: `translate(2 2)`
+  }));
+
+  // Blanco del ojo (esclera) — color crema cálido para que destaque sobre cualquier imagen
+  svg.appendChild(svgEl('path', {
+    d: eyePath,
+    fill:'#F5F1E8',
+    stroke:'#0A1628',
+    'stroke-width': 2,
+    class:'scan-anim'
+  }));
+
+  // Iris dorado (color de marca)
+  // Si está en sacada, la pupila se desplaza ligeramente hacia el destino
+  let pupilOffsetX = 0;
+  if(!isFixating && idx < state.scanpath.length - 1){
+    const to = state.scanpath[idx + 1];
+    const dirX = to.x - curX;
+    const dist = Math.abs(dirX);
+    if(dist > 0.1) pupilOffsetX = (dirX > 0 ? 1 : -1) * Math.min(3, dist * 0.05);
+  }
+
+  svg.appendChild(svgEl('circle', {
+    cx: curX + pupilOffsetX, cy: curY, r: eyeH * 0.85,
+    fill: '#E4B04A',
+    stroke:'#8B6914',
+    'stroke-width': 1,
+    class:'scan-anim'
+  }));
+
+  // Pupila negra
+  svg.appendChild(svgEl('circle', {
+    cx: curX + pupilOffsetX, cy: curY, r: eyeH * 0.45,
+    fill:'#0A1628',
+    class:'scan-anim'
+  }));
+
+  // Brillo en la pupila (reflejo de luz, para realismo)
+  svg.appendChild(svgEl('circle', {
+    cx: curX + pupilOffsetX - eyeH*0.2, cy: curY - eyeH*0.2, r: eyeH * 0.18,
+    fill:'#FFFFFF',
+    opacity: 0.9,
+    class:'scan-anim'
+  }));
+}
+
+$('btnPlayScanpath').addEventListener('click', ()=>{
+  if(scanAnim.playing) stopScanpathAnimation();
+  else startScanpathAnimation();
+});
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ANÁLISIS DE SALIENCIA - FUNCIÓN ÚNICA
+   La misma función se usa en Individual Y en A/B.
+   Recibe cualquier canvas y devuelve focos normalizados a sus dimensiones.
+   ═══════════════════════════════════════════════════════════════ */
+
+function runFullAnalysis(sourceCanvas){
+  // sourceCanvas: cualquier <canvas> ya con la imagen pintada
+  // Devuelve: {focos, sal, sW, sH, att, bal, score}
+
+  const W = sourceCanvas.width;
+  const H = sourceCanvas.height;
+
+  // Submuestreo a resolución de análisis (UNIFICADA: siempre 120 en el lado mayor)
+  const scale = Math.min(120 / Math.max(W, H), 1);
+  const sW = Math.round(W * scale);
+  const sH = Math.round(H * scale);
+
+  const tmp = document.createElement('canvas');
+  tmp.width = sW; tmp.height = sH;
+  const tctx = tmp.getContext('2d');
+  tctx.drawImage(sourceCanvas, 0, 0, sW, sH);
+  const sData = tctx.getImageData(0, 0, sW, sH).data;
+
+  // Mapa de saliencia
+  const sal = new Float32Array(sW * sH);
+  for(let y=0; y<sH; y++){
+    for(let x=0; x<sW; x++){
+      const idx = (y*sW + x) * 4;
+      const r = sData[idx], g = sData[idx+1], b = sData[idx+2];
+      const lum = 0.299*r + 0.587*g + 0.114*b;
+      let contrast = 0, count = 0;
+      const radius = 3;
+      for(let dy=-radius; dy<=radius; dy+=2){
+        for(let dx=-radius; dx<=radius; dx+=2){
+          const nx = x+dx, ny = y+dy;
+          if(nx>=0 && nx<sW && ny>=0 && ny<sH){
+            const nidx = (ny*sW + nx) * 4;
+            const nlum = 0.299*sData[nidx] + 0.587*sData[nidx+1] + 0.114*sData[nidx+2];
+            contrast += Math.abs(lum - nlum);
+            count++;
+          }
+        }
+      }
+      contrast = count > 0 ? contrast / count : 0;
+      const mx = Math.max(r,g,b), mn = Math.min(r,g,b);
+      const sat = mx > 0 ? (mx - mn) / mx : 0;
+      sal[y*sW + x] = contrast * 1.0 + sat * 50;
+    }
+  }
+
+  // Suavizado gaussiano
+  const sal2 = new Float32Array(sW * sH);
+  for(let y=0; y<sH; y++){
+    for(let x=0; x<sW; x++){
+      let sum = 0, w = 0;
+      for(let dy=-2; dy<=2; dy++){
+        for(let dx=-2; dx<=2; dx++){
+          const nx = x+dx, ny = y+dy;
+          if(nx>=0 && nx<sW && ny>=0 && ny<sH){
+            const weight = Math.exp(-(dx*dx+dy*dy)/4);
+            sum += sal[ny*sW + nx] * weight;
+            w += weight;
+          }
+        }
+      }
+      sal2[y*sW + x] = w > 0 ? sum/w : 0;
+    }
+  }
+
+  let maxV = 0;
+  for(let i=0; i<sal2.length; i++) if(sal2[i] > maxV) maxV = sal2[i];
+  if(maxV > 0) for(let i=0; i<sal2.length; i++) sal2[i] /= maxV;
+
+  // Extraer focos: SIEMPRE con los mismos parámetros relativos a sW/sH
+  const focos = extractFocos(sal2, sW, sH, W, H);
+
+  // Métricas
+  const topV = focos.slice(0,5).reduce((s,f)=>s+f.v, 0) / 5;
+  const att = Math.round(topV * 100);
+  const cx = W/2, cy = H/2;
+  let bx = 0, by = 0;
+  focos.slice(0,8).forEach(f => {
+    bx += (f.x - cx)/W;
+    by += (f.y - cy)/H;
+  });
+  const dispH = Math.abs(bx) / Math.max(1, focos.length);
+  const dispV = Math.abs(by) / Math.max(1, focos.length);
+  const bal = Math.round(100 - (dispH + dispV) * 100);
+  const score = Math.round(att * 0.6 + bal * 0.4);
+
+  return {focos, sal: {data: sal2, w: sW, h: sH}, sW, sH, att, bal, score};
+}
+
+function analyzeImage(){
+  // Modo Individual: usa el canvas de display, pero antes pinta la imagen original
+  // en un canvas auxiliar para que el análisis sea idéntico al de A/B.
+  // CLAVE: usamos un canvas con las dimensiones de display (mismas que ve el usuario)
+  // y la imagen pintada igual. Así A/B e Individual analizan EXACTAMENTE igual.
+
+  const result = runFullAnalysis($('imgCanvas'));
+
+  state.sal = result.sal;
+  state.focos = result.focos;
+  state.analysis = {
+    focos: result.focos.length,
+    att: result.att,
+    bal: result.bal,
+    score: result.score,
+    topFocos: result.focos.slice(0,5)
+  };
+
+  updateMetricsUI();
+  updateVerdictAndSuggestions();
+  updateScanpath();
+
+  $('btnDocx').disabled = false;
+  $('btnPdf').disabled = false;
+
+  drawAll();
+}
+
+function extractFocos(sal, sW, sH, W, H){
+  const focos = [];
+  const minDist = Math.max(sW, sH) * 0.08;
+
+  // Encontrar máximos locales
+  const candidates = [];
+  for(let y=2; y<sH-2; y++){
+    for(let x=2; x<sW-2; x++){
+      const v = sal[y*sW + x];
+      if(v < 0.15) continue;
+      let isMax = true;
+      for(let dy=-2; dy<=2 && isMax; dy++){
+        for(let dx=-2; dx<=2 && isMax; dx++){
+          if(dx===0 && dy===0) continue;
+          if(sal[(y+dy)*sW + (x+dx)] > v) isMax = false;
+        }
+      }
+      if(isMax) candidates.push({x, y, v});
+    }
+  }
+
+  candidates.sort((a,b) => b.v - a.v);
+
+  // Aplicar non-max suppression con distancia mínima
+  // Sin límite arbitrario: el umbral de saliencia (0.15) y la distancia mínima
+  // determinan cuántos focos genuinos tiene la imagen.
+  // Cap de seguridad muy alto para evitar problemas en imágenes patológicas.
+  for(const c of candidates){
+    let ok = true;
+    for(const f of focos){
+      if(Math.hypot(c.x-f._sx, c.y-f._sy) < minDist){ ok = false; break; }
+    }
+    if(ok){
+      focos.push({
+        _sx: c.x, _sy: c.y,
+        x: c.x * (W/sW),
+        y: c.y * (H/sH),
+        v: c.v
+      });
+      if(focos.length >= 50) break; // cap de seguridad, no debería alcanzarse
+    }
+  }
+  return focos;
+}
+
+function updateMetricsUI(){
+  if(!state.analysis) return;
+  const a = state.analysis;
+  $('mFocos').textContent = a.focos;
+  $('mAtt').textContent = a.att;
+  $('mBal').textContent = a.bal;
+  $('mScore').textContent = a.score;
+  // Color por score
+  const colorBy = (v) => v >= 70 ? 'var(--green)' : v >= 50 ? 'var(--gold)' : 'var(--amber)';
+  $('mAtt').style.color = colorBy(a.att);
+  $('mBal').style.color = colorBy(a.bal);
+  $('mScore').style.color = colorBy(a.score);
+}
+
+function updateVerdictAndSuggestions(){
+  const a = state.analysis;
+  if(!a) return;
+
+  // Diagnóstico
+  let verdict = '';
+  if(a.score >= 75) verdict = `Composición visualmente sólida. Los ${a.focos} focos detectados se concentran adecuadamente y el balance es alto (${a.bal}/100).`;
+  else if(a.score >= 55) verdict = `Composición aceptable con espacio de mejora. ${a.focos} focos detectados; balance ${a.bal}/100 sugiere ajustes menores en distribución.`;
+  else verdict = `Composición con baja jerarquía visual. ${a.focos} focos detectados; balance ${a.bal}/100 indica dispersión o asimetría problemática.`;
+  $('verdictText').textContent = verdict;
+
+  // Sugerencias
+  const sugs = generateSuggestions(a);
+  const list = $('suggestionsList');
+  list.innerHTML = '';
+  sugs.forEach((s,i)=>{
+    const el = document.createElement('div');
+    el.className = 'sug-item';
+    el.innerHTML = `<span class="sug-num">${i+1}</span><span>${s}</span>`;
+    list.appendChild(el);
+  });
+
+  // Mostrar el panel debajo de la imagen (si no hay capa activa)
+  updateContextPanel();
+}
+
+function generateSuggestions(a){
+  const W = state.displayW, H = state.displayH;
+  const sugs = [];
+
+  // Análisis de posición del foco principal
+  if(a.topFocos.length){
+    const f1 = a.topFocos[0];
+    const cx = W/2, cy = H/2;
+    const dx = (f1.x - cx)/W, dy = (f1.y - cy)/H;
+    const dist = Math.hypot(dx, dy);
+
+    if(dist < 0.1){
+      sugs.push('El foco principal está casi centrado. Considera moverlo hacia un punto áureo (intersecciones de tercios) para crear mayor tensión visual.');
+    }else{
+      const px = dx > 0 ? 'derecha' : 'izquierda';
+      const py = dy > 0 ? 'inferior' : 'superior';
+      sugs.push(`Foco principal ubicado en cuadrante ${py}-${px}. Esto guía la mirada en sentido ${dx > 0 ? 'derecho' : 'izquierdo'}; alinéalo con un punto áureo para reforzar el patrón.`);
+    }
+  }
+
+  if(a.bal < 60){
+    sugs.push('Balance bajo (' + a.bal + '/100). La composición está cargada hacia un lado. Redistribuye elementos secundarios o agrega contrapeso visual en el lado opuesto.');
+  }
+
+  if(a.focos > 10){
+    sugs.push('Demasiados focos compitiendo (' + a.focos + ' detectados). Reduce el ruido visual: jerarquiza tipografía, simplifica fondo o elimina elementos no esenciales.');
+  }else if(a.focos < 3){
+    sugs.push('Pocos focos visuales claros. La pieza puede leerse plana o poco impactante. Aumenta contraste, agrega color saturado o introduce un elemento de ruptura.');
+  }
+
+  if(a.att < 50){
+    sugs.push('Atención baja (' + a.att + '/100). El estímulo principal carece de fuerza. Aumenta contraste cromático, tamaño relativo o coloca el elemento clave en el punto áureo dominante.');
+  }
+
+  sugs.push('Activa la espiral áurea en orientación ' + state.orient.toUpperCase() + ' y verifica si el ojo del frame coincide con tu foco principal. De no ser así, reposiciona el elemento clave o cambia la orientación.');
+
+  sugs.push('Compara con el patrón Z (lectura occidental rápida) o F (lectura web detallada) según el tipo de pieza: anuncio impreso → Z; landing page o catálogo → F.');
+
+  return sugs;
+}
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   GEOMETRÍA ÁUREA
+   ═══════════════════════════════════════════════════════════════ */
+
+function getGoldenFrame(W, H, orient){
+  // EN v16: el frame áureo SIEMPRE ocupa toda la imagen.
+  // La subdivisión Fibonacci se adapta a la proporción real de la imagen,
+  // así los cuadrados se ven grandes y proporcionados independientemente
+  // del aspect ratio de la pieza.
+  let fx, fy;
+  switch(orient){
+    case 'br': fx = 0; fy = 0; break;
+    case 'bl': fx = 0; fy = 0; break;
+    case 'tr': fx = 0; fy = 0; break;
+    case 'tl': fx = 0; fy = 0; break;
+  }
+  return {x: 0, y: 0, w: W, h: H};
+}
+
+function getGoldenRects(W, H, orient){
+  // Subdivisión Fibonacci adaptada a la proporción real de la imagen.
+  // El primer cuadrado tiene lado = lado menor de la imagen.
+  // Cada siguiente cuadrado tiene lado / φ del anterior (aproximación geométrica).
+  const frame = getGoldenFrame(W, H, orient);
+  const rects = [];
+  let x = frame.x, y = frame.y, w = frame.w, h = frame.h;
+
+  for(let i = 0; i < 8; i++){
+    if(w < 5 || h < 5) break;
+    let ss;
+    if(w >= h){
+      ss = h;
+      const fromLeft = (orient === 'br' || orient === 'tr');
+      const sx = fromLeft ? x : (x + w - ss);
+      rects.push({x: sx, y, w: ss, h: ss});
+      if(fromLeft) x += ss;
+      w -= ss;
+    }else{
+      ss = w;
+      const fromTop = (orient === 'br' || orient === 'bl');
+      const sy = fromTop ? y : (y + h - ss);
+      rects.push({x, y: sy, w: ss, h: ss});
+      if(fromTop) y += ss;
+      h -= ss;
+    }
+  }
+  return {frame, rects};
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DIBUJO PRINCIPAL — Re-dibuja TODAS las capas activas
+   ═══════════════════════════════════════════════════════════════ */
+
+function drawAll(){
+  if(!state.img) return;
+  drawImage();
+  drawSvgLayers();
+  drawHeatmap();
+  drawOpacityMap();
+}
+
+function drawImage(){
+  const ctx = $('imgCanvas').getContext('2d');
+  ctx.clearRect(0, 0, state.displayW, state.displayH);
+  ctx.drawImage(state.img, 0, 0, state.displayW, state.displayH);
+}
+
+/* ───────────────────────────────────────────
+   CAPAS SVG (vectoriales)
+   ─────────────────────────────────────────── */
+function drawSvgLayers(){
+  const svg = $('overlaySvg');
+  const W = state.displayW, H = state.displayH;
+  // Limpiar
+  svg.innerHTML = '';
+
+  if(state.layers.tercios)     drawTercios(svg, W, H);
+  if(state.layers.phigrid)     drawPhiGrid(svg, W, H);
+  if(state.layers.cuartos)     drawCuartos(svg, W, H);
+  if(state.layers.diagonales)  drawDiagonales(svg, W, H);
+  if(state.layers.simetria)    drawSimetria(svg, W, H);
+  if(state.layers.fibonacci)   drawFibonacci(svg, W, H);
+  if(state.layers.patronZ)     drawPatronZ(svg, W, H);
+  if(state.layers.patronF)     drawPatronF(svg, W, H);
+  if(state.layers.seguimiento) drawSeguimiento(svg, W, H);
+}
+
+function svgEl(tag, attrs){
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for(const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+function drawTercios(svg, W, H){
+  const t1x = W/3, t2x = 2*W/3;
+  const t1y = H/3, t2y = 2*H/3;
+  const color = '#9CA3AF';
+  // Líneas
+  [[t1x,0,t1x,H],[t2x,0,t2x,H],[0,t1y,W,t1y],[0,t2y,W,t2y]].forEach(([x1,y1,x2,y2])=>{
+    svg.appendChild(svgEl('line',{x1,y1,x2,y2,stroke:color,'stroke-width':1.5,'stroke-dasharray':'4 4',opacity:0.85}));
+  });
+  // 4 puntos áureos
+  [[t1x,t1y],[t2x,t1y],[t1x,t2y],[t2x,t2y]].forEach(([cx,cy])=>{
+    svg.appendChild(svgEl('circle',{cx,cy,r:7,fill:'#E4B04A',stroke:'#0A1628','stroke-width':2}));
+  });
+}
+
+function drawPhiGrid(svg, W, H){
+  // Cuadrícula áurea (líneas en 1/φ y 1-1/φ)
+  const r = 1/PHI;
+  const x1 = W * (1-r), x2 = W * r;
+  const y1 = H * (1-r), y2 = H * r;
+  const color = '#E4B04A';
+  [[x1,0,x1,H],[x2,0,x2,H],[0,y1,W,y1],[0,y2,W,y2]].forEach(([X1,Y1,X2,Y2])=>{
+    svg.appendChild(svgEl('line',{x1:X1,y1:Y1,x2:X2,y2:Y2,stroke:color,'stroke-width':2,opacity:0.85}));
+  });
+  // Puntos áureos en intersecciones
+  [[x1,y1],[x2,y1],[x1,y2],[x2,y2]].forEach(([cx,cy])=>{
+    svg.appendChild(svgEl('circle',{cx,cy,r:6,fill:color,stroke:'#0A1628','stroke-width':1.5}));
+  });
+}
+
+function drawCuartos(svg, W, H){
+  // División en 4 cuartos
+  const color = '#06B6D4';
+  svg.appendChild(svgEl('line',{x1:W/2,y1:0,x2:W/2,y2:H,stroke:color,'stroke-width':2,'stroke-dasharray':'6 4'}));
+  svg.appendChild(svgEl('line',{x1:0,y1:H/2,x2:W,y2:H/2,stroke:color,'stroke-width':2,'stroke-dasharray':'6 4'}));
+
+  // Calcular % de atención en cada cuarto
+  if(state.focos.length){
+    const quads = [0,0,0,0]; // TL, TR, BL, BR
+    state.focos.slice(0,10).forEach(f=>{
+      const i = (f.y > H/2 ? 2 : 0) + (f.x > W/2 ? 1 : 0);
+      quads[i] += f.v;
+    });
+    const sum = quads.reduce((a,b)=>a+b,0) || 1;
+    const positions = [[W*0.25,H*0.25],[W*0.75,H*0.25],[W*0.25,H*0.75],[W*0.75,H*0.75]];
+    quads.forEach((v,i)=>{
+      const pct = Math.round(v/sum*100);
+      const [cx,cy] = positions[i];
+      const r = 28;
+      svg.appendChild(svgEl('circle',{cx,cy,r,fill:'rgba(6,182,212,0.15)',stroke:color,'stroke-width':2}));
+      const t = svgEl('text',{x:cx,y:cy+5,'text-anchor':'middle',fill:color,'font-family':'JetBrains Mono','font-size':14,'font-weight':700});
+      t.textContent = pct + '%';
+      svg.appendChild(t);
+    });
+  }
+}
+
+function drawDiagonales(svg, W, H){
+  const color = '#8B5CF6';
+  // Diagonales a 45° desde las 4 esquinas
+  svg.appendChild(svgEl('line',{x1:0,y1:0,x2:W,y2:H,stroke:color,'stroke-width':1.5,'stroke-dasharray':'3 3',opacity:0.8}));
+  svg.appendChild(svgEl('line',{x1:W,y1:0,x2:0,y2:H,stroke:color,'stroke-width':1.5,'stroke-dasharray':'3 3',opacity:0.8}));
+  // Punto central
+  svg.appendChild(svgEl('circle',{cx:W/2,cy:H/2,r:6,fill:color,stroke:'#0A1628','stroke-width':2}));
+}
+
+function drawSimetria(svg, W, H){
+  // Simetría dinámica (root rectangles) — diagonales del rectángulo y sus perpendiculares
+  const color = '#EC4899';
+  // Diagonal principal
+  svg.appendChild(svgEl('line',{x1:0,y1:0,x2:W,y2:H,stroke:color,'stroke-width':1.5,opacity:0.7}));
+  svg.appendChild(svgEl('line',{x1:W,y1:0,x2:0,y2:H,stroke:color,'stroke-width':1.5,opacity:0.7}));
+
+  // Perpendiculares a las diagonales desde las esquinas
+  // Slope diagonal: m = H/W. Perpendicular: -W/H
+  // De (0,0) perpendicular a la otra diagonal (W,0)->(0,H): pasa por... cálculo simplificado
+  // Mejor: armónicas y centro
+  svg.appendChild(svgEl('line',{x1:0,y1:H/2,x2:W,y2:H/2,stroke:color,'stroke-width':1,opacity:0.5,'stroke-dasharray':'4 4'}));
+  svg.appendChild(svgEl('line',{x1:W/2,y1:0,x2:W/2,y2:H,stroke:color,'stroke-width':1,opacity:0.5,'stroke-dasharray':'4 4'}));
+
+  // 4 puntos de simetría en los centros de cada cuadrante
+  [[W*0.25,H*0.25],[W*0.75,H*0.25],[W*0.25,H*0.75],[W*0.75,H*0.75]].forEach(([cx,cy])=>{
+    svg.appendChild(svgEl('circle',{cx,cy,r:5,fill:color,opacity:0.9}));
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PLANTILLA ÁUREA INTERACTIVA — Sistema de drag/resize/flip
+   ═══════════════════════════════════════════════════════════════ */
+
+function initTemplateInteraction(){
+  const svg = $('overlaySvg');
+  if(!svg) return;
+
+  // Convertir coordenadas de pantalla a coordenadas SVG (viewBox)
+  function screenToSvg(clientX, clientY){
+    const pt = svg.createSVGPoint();
+    pt.x = clientX; pt.y = clientY;
+    const ctm = svg.getScreenCTM();
+    if(!ctm) return {x: clientX, y: clientY};
+    const inv = ctm.inverse();
+    const out = pt.matrixTransform(inv);
+    return {x: out.x, y: out.y};
+  }
+
+  function onPointerDown(e){
+    if(!state.layers.fibonacci) return;
+    const target = e.target;
+    if(!target.classList || !target.classList.contains('tpl-handle')) return;
+    const mode = target.getAttribute('data-mode');
+    if(!mode) return;
+
+    e.preventDefault();
+    const evt = e.touches ? e.touches[0] : e;
+    const pos = screenToSvg(evt.clientX, evt.clientY);
+    state.dragMode = mode;
+    state.dragStart = {
+      x: pos.x, y: pos.y,
+      tplX: state.template.x, tplY: state.template.y,
+      tplW: state.template.w, tplH: state.template.h
+    };
+  }
+
+  function onPointerMove(e){
+    if(!state.dragMode) return;
+    e.preventDefault();
+    const evt = e.touches ? e.touches[0] : e;
+    const pos = screenToSvg(evt.clientX, evt.clientY);
+    const ds = state.dragStart;
+    const tpl = state.template;
+    const W = state.displayW, H = state.displayH;
+    const MIN = 50;
+
+    const dx = pos.x - ds.x;
+    const dy = pos.y - ds.y;
+
+    if(state.dragMode === 'move'){
+      tpl.x = ds.tplX + dx;
+      tpl.y = ds.tplY + dy;
+    }else{
+      // Resize MANTENIENDO proporción áurea
+      // La proporción actual de la plantilla (puede ser horizontal o vertical áurea)
+      const aspect = ds.tplW / ds.tplH; // 1.618 si horizontal, 0.618 si vertical
+
+      // Calcular nuevo tamaño basado en el delta diagonal
+      // Anclamos la esquina OPUESTA y dejamos que la esquina arrastrada se mueva
+      let anchorX, anchorY;
+      if(state.dragMode === 'resize-br'){ anchorX = ds.tplX; anchorY = ds.tplY; }
+      else if(state.dragMode === 'resize-bl'){ anchorX = ds.tplX + ds.tplW; anchorY = ds.tplY; }
+      else if(state.dragMode === 'resize-tr'){ anchorX = ds.tplX; anchorY = ds.tplY + ds.tplH; }
+      else if(state.dragMode === 'resize-tl'){ anchorX = ds.tplX + ds.tplW; anchorY = ds.tplY + ds.tplH; }
+
+      // Vector desde el anchor hasta el puntero
+      const vx = Math.abs(pos.x - anchorX);
+      const vy = Math.abs(pos.y - anchorY);
+
+      // Calcular nuevo W y H manteniendo el aspect ratio
+      let newW, newH;
+      if(vx / Math.max(vy, 1) >= aspect){
+        // El movimiento horizontal manda
+        newW = Math.max(MIN, vx);
+        newH = newW / aspect;
+      }else{
+        // El movimiento vertical manda
+        newH = Math.max(MIN, vy);
+        newW = newH * aspect;
+      }
+
+      // Posicionar la plantilla con el anchor fijo
+      if(state.dragMode === 'resize-br'){
+        tpl.x = anchorX; tpl.y = anchorY;
+      }else if(state.dragMode === 'resize-bl'){
+        tpl.x = anchorX - newW; tpl.y = anchorY;
+      }else if(state.dragMode === 'resize-tr'){
+        tpl.x = anchorX; tpl.y = anchorY - newH;
+      }else if(state.dragMode === 'resize-tl'){
+        tpl.x = anchorX - newW; tpl.y = anchorY - newH;
+      }
+      tpl.w = newW; tpl.h = newH;
+    }
+    drawSvgLayers();
+  }
+
+  function onPointerUp(){
+    state.dragMode = null;
+    state.dragStart = null;
+  }
+
+  svg.addEventListener('mousedown', onPointerDown);
+  document.addEventListener('mousemove', onPointerMove);
+  document.addEventListener('mouseup', onPointerUp);
+  svg.addEventListener('touchstart', onPointerDown, {passive:false});
+  document.addEventListener('touchmove', onPointerMove, {passive:false});
+  document.addEventListener('touchend', onPointerUp);
+}
+
+// Controles públicos para los botones del panel
+function templateFlipH(){ state.template.flipH = !state.template.flipH; drawSvgLayers(); }
+function templateFlipV(){ state.template.flipV = !state.template.flipV; drawSvgLayers(); }
+function templateFlipBoth(){
+  state.template.flipH = !state.template.flipH;
+  state.template.flipV = !state.template.flipV;
+  drawSvgLayers();
+}
+function templateFitCanvas(){
+  // "Ajustar al lienzo" pero MANTENIENDO proporción áurea
+  // (el lienzo del usuario puede no ser áureo)
+  const W = state.displayW, H = state.displayH;
+  let tw, th;
+  if(W >= H){
+    // Lienzo horizontal: plantilla áurea horizontal lo más grande posible
+    th = H; tw = th * PHI;
+    if(tw > W){ tw = W; th = tw / PHI; }
+  }else{
+    // Lienzo vertical: plantilla áurea vertical lo más grande posible
+    tw = W; th = tw * PHI;
+    if(th > H){ th = H; tw = th / PHI; }
+  }
+  state.template.x = (W - tw) / 2;
+  state.template.y = (H - th) / 2;
+  state.template.w = tw;
+  state.template.h = th;
+  drawSvgLayers();
+}
+function templateReset(){
+  const W = state.displayW, H = state.displayH;
+  // Default: rectángulo áureo centrado dentro de la imagen
+  const aspect = 1.618;
+  let tw, th;
+  if(W/H > aspect){ th = H * 0.8; tw = th * aspect; }
+  else { tw = W * 0.8; th = tw / aspect; }
+  state.template.x = (W - tw)/2;
+  state.template.y = (H - th)/2;
+  state.template.w = tw;
+  state.template.h = th;
+  state.template.flipH = false;
+  state.template.flipV = false;
+  drawSvgLayers();
+}
+
+function drawFibonacci(svg, W, H){
+  // ═══════════════════════════════════════════════════════════════
+  // PLANTILLA ÁUREA INTERACTIVA (v24)
+  // Espiral Fibonacci clásica (cuartos de círculo) + cuadrícula Fibonacci
+  // Manipulable: drag para mover, manijas para escalar, botones para voltear
+  // ═══════════════════════════════════════════════════════════════
+  const color = '#F59E0B';
+  const gold  = '#E4B04A';
+
+  // Inicializar plantilla con proporción áurea (1.618) la primera vez
+  if(!state.template.initialized){
+    let tW, tH;
+    if(W >= H){
+      tH = H * 0.90;
+      tW = tH * PHI;
+      if(tW > W * 0.95){ tW = W * 0.95; tH = tW / PHI; }
+    }else{
+      tW = W * 0.90;
+      tH = tW * PHI;
+      if(tH > H * 0.95){ tH = H * 0.95; tW = tH / PHI; }
+    }
+    state.template.x = (W - tW) / 2;
+    state.template.y = (H - tH) / 2;
+    state.template.w = tW;
+    state.template.h = tH;
+    state.template.initialized = true;
+  }
+
+  const tpl = state.template;
+  // Bounds de la plantilla
+  const tx = tpl.x, ty = tpl.y, tw = tpl.w, th = tpl.h;
+  if(tw < 10 || th < 10) return;
+
+  // ═══════════════════════════════════════════════════════════════
+  // CUADRÍCULA + ESPIRAL FIBONACCI: TABLAS CANÓNICAS FIJAS (v30)
+  // ═══════════════════════════════════════════════════════════════
+  // Aprobadas por Javier el 27 mayo 2026. Resuelven el bug de continuidad
+  // del cuadrante 13 (y siguientes) en todos los casos: horizontal/vertical
+  // × {sin flips, flipH, flipV, flipH+flipV}.
+  //
+  // REGLA: la espiral es UNA SOLA CURVA continua. Cada arco arranca donde
+  // terminó el anterior. NO usar el algoritmo "esquina más lejana del ojo"
+  // (rompe la continuidad). Usar las tablas canónicas y transformarlas.
+  //
+  // Sistema canónico: 1000×618 áureo, sin flips, ojo BR.
+  //   - Para vertical: transponer x↔y ANTES de los flips
+  //   - Flips: aplicar en el sistema REAL del usuario (usar tw, th)
+  //   - Sweep flag del path: se invierte una vez por cada operación que
+  //     cambia el sentido del giro (transposición vertical, flipH, flipV)
+
+  // Posiciones de los 8 cuadrados (fracciones del lado mayor)
+  const FIB_TABLE = [
+    {n: 21, fx: 0/1000,   fy: 0/618,   fs: 618/1000},
+    {n: 13, fx: 618/1000, fy: 0/618,   fs: 382/1000},
+    {n: 8,  fx: 764/1000, fy: 382/618, fs: 236/1000},
+    {n: 5,  fx: 618/1000, fy: 472/618, fs: 146/1000},
+    {n: 3,  fx: 618/1000, fy: 382/618, fs: 90/1000},
+    {n: 2,  fx: 708/1000, fy: 382/618, fs: 56/1000},
+    {n: 1,  fx: 730/1000, fy: 438/618, fs: 34/1000},
+    {n: 1,  fx: 708/1000, fy: 450/618, fs: 22/1000},
+  ];
+
+  // Tabla de la espiral: 8 arcos con start/end/radio (path SVG aprobado)
+  // start del arco 1 = (0, 618), end del arco 8 = (708, 450) (cerca del ojo BR)
+  const SPIRAL_TABLE = [
+    {fsx: 0/1000,    fsy: 618/618, fex: 618/1000,  fey: 0/618,   fr: 618/1000},
+    {fsx: 618/1000,  fsy: 0/618,   fex: 1000/1000, fey: 382/618, fr: 382/1000},
+    {fsx: 1000/1000, fsy: 382/618, fex: 764/1000,  fey: 618/618, fr: 236/1000},
+    {fsx: 764/1000,  fsy: 618/618, fex: 618/1000,  fey: 472/618, fr: 146/1000},
+    {fsx: 618/1000,  fsy: 472/618, fex: 708/1000,  fey: 382/618, fr: 90/1000 },
+    {fsx: 708/1000,  fsy: 382/618, fex: 764/1000,  fey: 438/618, fr: 56/1000 },
+    {fsx: 764/1000,  fsy: 438/618, fex: 730/1000,  fey: 472/618, fr: 34/1000 },
+    {fsx: 730/1000,  fsy: 472/618, fex: 708/1000,  fey: 450/618, fr: 22/1000 },
+  ];
+  const CANONICAL_SWEEP = 1; // sweep flag del path aprobado original
+
+  // Lado mayor/menor del rectángulo de la plantilla
+  const isHorizontalTpl = (tw >= th);
+  const canvasW = isHorizontalTpl ? tw : th;
+  const canvasH = isHorizontalTpl ? th : tw;
+
+  // Transforma un punto canónico (fcx, fcy) al sistema real del usuario.
+  // 1) escala al canónico real (horizontal)
+  // 2) transpone si la plantilla es vertical
+  // 3) aplica flips en el sistema real
+  function _tplTransformPoint(fcx, fcy){
+    const cx = fcx * canvasW;
+    const cy = fcy * canvasH;
+    let rx, ry;
+    if(isHorizontalTpl){ rx = cx; ry = cy; }
+    else                { rx = cy; ry = cx; }
+    if(tpl.flipH){ rx = tw - rx; }
+    if(tpl.flipV){ ry = th - ry; }
+    return {x: tx + rx, y: ty + ry};
+  }
+
+  // Construir los 8 rectángulos
+  const rects = [];
+  const fibNumbers = [];
+  for(const r of FIB_TABLE){
+    const p = _tplTransformPoint(r.fx, r.fy);
+    const cs = r.fs * canvasW;
+    // El "anchor" del rect se mueve a la esquina opuesta cuando hay flip
+    let x = p.x, y = p.y;
+    if(tpl.flipH) x -= cs;
+    if(tpl.flipV) y -= cs;
+    rects.push({x: x, y: y, w: cs, h: cs});
+    fibNumbers.push(r.n);
+  }
+
+  // Numeración Fibonacci CORRECTA: ya vienen en la tabla
+  const FIB_LABELS = fibNumbers;
+  function fibFor(i){
+    return FIB_LABELS[Math.min(i, FIB_LABELS.length - 1)];
+  }
+
+  // Dibujar cuadrados Fibonacci
+  rects.forEach((r,i) => {
+    if(i <= 1){
+      svg.appendChild(svgEl('rect',{
+        x:r.x, y:r.y, width:r.w, height:r.h,
+        fill: color, opacity: 0.04
+      }));
+    }
+    svg.appendChild(svgEl('rect',{
+      x:r.x, y:r.y, width:r.w, height:r.h,
+      fill:'none', stroke: color,
+      'stroke-width': i <= 1 ? 2 : 1.5,
+      opacity: Math.max(0.55, 1 - i*0.06)
+    }));
+    const num = fibFor(i);
+    const fs = Math.min(r.w, r.h) * 0.32;
+    if(fs >= 11){
+      svg.appendChild(svgEl('text',{
+        x: r.x + r.w/2 + 1, y: r.y + r.h/2 + fs*0.35 + 1,
+        'text-anchor':'middle', fill: 'rgba(10,22,40,0.6)', 'font-family':'Fraunces',
+        'font-size': fs, 'font-weight':700
+      })).textContent = num;
+      svg.appendChild(svgEl('text',{
+        x: r.x + r.w/2, y: r.y + r.h/2 + fs*0.35,
+        'text-anchor':'middle', fill: color, 'font-family':'Fraunces',
+        'font-size': fs, 'font-weight':700, opacity: 0.92
+      })).textContent = num;
+    }
+  });
+
+  // ─── Espiral Fibonacci clásica (cuartos de círculo) — v30 ───
+  // Construida desde SPIRAL_TABLE para garantizar continuidad estricta
+  // entre arcos en los 8 casos (horizontal/vertical × 4 combinaciones de flip).
+  // Cada arco arranca exactamente donde terminó el anterior — la espiral
+  // es una sola curva continua que converge al ojo.
+
+  // Determinar el "ojo" (esquina del rect hacia la que converge la espiral)
+  let eyeX, eyeY;
+  if(!tpl.flipH && !tpl.flipV){       eyeX = tx + tw; eyeY = ty + th; }  // BR
+  else if(tpl.flipH && !tpl.flipV){   eyeX = tx;      eyeY = ty + th; }  // BL
+  else if(!tpl.flipH && tpl.flipV){   eyeX = tx + tw; eyeY = ty;      }  // TR
+  else {                              eyeX = tx;      eyeY = ty;      }  // TL
+
+  // Sweep flag: se invierte una vez por cada operación que cambia el sentido del giro
+  let _spiralSweep = CANONICAL_SWEEP;
+  if(!isHorizontalTpl) _spiralSweep = 1 - _spiralSweep; // transposición vertical
+  if(tpl.flipH)        _spiralSweep = 1 - _spiralSweep; // espejo horizontal
+  if(tpl.flipV)        _spiralSweep = 1 - _spiralSweep; // espejo vertical
+
+  let spiralPath = '';
+  let firstPoint = null;
+  for(let i = 0; i < SPIRAL_TABLE.length; i++){
+    const a = SPIRAL_TABLE[i];
+    const s = _tplTransformPoint(a.fsx, a.fsy);
+    const e = _tplTransformPoint(a.fex, a.fey);
+    const r = a.fr * canvasW;
+    if(i === 0){
+      spiralPath += 'M ' + s.x.toFixed(2) + ' ' + s.y.toFixed(2) + ' ';
+      firstPoint = s;
+    }
+    spiralPath += 'A ' + r.toFixed(2) + ' ' + r.toFixed(2) + ' 0 0 ' + _spiralSweep + ' ' + e.x.toFixed(2) + ' ' + e.y.toFixed(2) + ' ';
+  }
+
+  if(spiralPath){
+    // Sombra oscura para contraste sobre cualquier fondo
+    svg.appendChild(svgEl('path',{
+      d: spiralPath, fill:'none', stroke:'rgba(10,22,40,0.55)', 'stroke-width': 5,
+      'stroke-linecap':'round','stroke-linejoin':'round'
+    }));
+    // Trazo principal dorado
+    svg.appendChild(svgEl('path',{
+      d: spiralPath, fill:'none', stroke: gold, 'stroke-width': 3, opacity: 0.95,
+      'stroke-linecap':'round','stroke-linejoin':'round'
+    }));
+
+    // Marcar el punto de ARRANQUE de la espiral
+    if(firstPoint){
+      svg.appendChild(svgEl('circle',{
+        cx: firstPoint.x, cy: firstPoint.y, r: 6,
+        fill: gold, stroke: '#0A1628', 'stroke-width': 1.5, opacity: 0.85
+      }));
+    }
+  }
+
+  // Marcar el "ojo" de la espiral (esquina del rect hacia la que converge)
+  svg.appendChild(svgEl('circle',{cx:eyeX, cy:eyeY, r:14, fill:'none', stroke: gold, 'stroke-width':2, opacity:0.7}));
+  svg.appendChild(svgEl('circle',{cx:eyeX, cy:eyeY, r:8,  fill: gold, stroke:'#0A1628', 'stroke-width':2}));
+
+  // ─── Marco rectangular de la plantilla con sombra ───
+  svg.appendChild(svgEl('rect',{
+    x: tx, y: ty, width: tw, height: th,
+    fill:'none', stroke:'rgba(228,176,74,0.4)', 'stroke-width': 1.5,
+    'stroke-dasharray':'8 4'
+  }));
+
+  // ─── Etiqueta φ FIBONACCI ───
+  svg.appendChild(svgEl('text',{
+    x: tx + 8, y: ty + 18,
+    fill: gold, 'font-family':'JetBrains Mono',
+    'font-size': 11, 'font-weight':700, opacity: 0.95
+  })).textContent = 'φ PLANTILLA ÁUREA';
+
+  // ─── Manijas de manipulación (4 esquinas + centro) ───
+  const HANDLE_SIZE = 12;
+  const handles = [
+    {x: tx,       y: ty,       mode: 'resize-tl', cursor: 'nwse-resize'},
+    {x: tx + tw,  y: ty,       mode: 'resize-tr', cursor: 'nesw-resize'},
+    {x: tx,       y: ty + th,  mode: 'resize-bl', cursor: 'nesw-resize'},
+    {x: tx + tw,  y: ty + th,  mode: 'resize-br', cursor: 'nwse-resize'}
+  ];
+
+  handles.forEach(hd => {
+    // Cuadrado de manija visible
+    const rect = svgEl('rect',{
+      x: hd.x - HANDLE_SIZE/2, y: hd.y - HANDLE_SIZE/2,
+      width: HANDLE_SIZE, height: HANDLE_SIZE,
+      fill:'#00B8C4', stroke:'#0A1628', 'stroke-width':2,
+      class: 'tpl-handle', 'data-mode': hd.mode,
+      style:'cursor:'+hd.cursor+';pointer-events:all'
+    });
+    svg.appendChild(rect);
+  });
+
+  // Centro: punto para mover (más grande, más visible)
+  const cx = tx + tw/2, cy = ty + th/2;
+  svg.appendChild(svgEl('circle',{
+    cx, cy, r: 16, fill:'rgba(0,184,196,0.2)', stroke:'#00B8C4', 'stroke-width':2,
+    'data-mode':'move', class:'tpl-handle',
+    style:'cursor:move;pointer-events:all'
+  }));
+  // Icono "+" en el centro
+  svg.appendChild(svgEl('line',{
+    x1: cx-7, y1: cy, x2: cx+7, y2: cy,
+    stroke:'#00B8C4', 'stroke-width':2.5,
+    style:'pointer-events:none'
+  }));
+  svg.appendChild(svgEl('line',{
+    x1: cx, y1: cy-7, x2: cx, y2: cy+7,
+    stroke:'#00B8C4', 'stroke-width':2.5,
+    style:'pointer-events:none'
+  }));
+}
+
+function drawPatronZ(svg, W, H){
+  const color = '#F472B6';
+  // Z: arriba-izq → arriba-der → centro → abajo-izq → abajo-der
+  const pts = [
+    [W*0.12, H*0.18],
+    [W*0.88, H*0.18],
+    [W*0.50, H*0.50],
+    [W*0.12, H*0.82],
+    [W*0.88, H*0.82]
+  ];
+  // Path
+  let d = `M ${pts[0][0]} ${pts[0][1]}`;
+  for(let i=1; i<pts.length; i++) d += ` L ${pts[i][0]} ${pts[i][1]}`;
+  svg.appendChild(svgEl('path',{d,fill:'none',stroke:color,'stroke-width':3,opacity:0.85,'stroke-linecap':'round'}));
+  // Números
+  pts.forEach(([cx,cy],i)=>{
+    svg.appendChild(svgEl('circle',{cx,cy,r:16,fill:color,stroke:'#0A1628','stroke-width':2}));
+    const t = svgEl('text',{x:cx,y:cy+5,'text-anchor':'middle',fill:'#0A1628','font-family':'JetBrains Mono','font-size':14,'font-weight':700});
+    t.textContent = i+1;
+    svg.appendChild(t);
+  });
+}
+
+function drawPatronF(svg, W, H){
+  const color = '#A78BFA';
+  // F: línea superior horizontal completa, línea media corta, columna izquierda
+  // Segmentos como path
+  const y1 = H * 0.18, y2 = H * 0.45, y3 = H * 0.80;
+  const x0 = W * 0.10, x1 = W * 0.85, x2 = W * 0.55;
+
+  let d = `M ${x0} ${y1} L ${x1} ${y1}`; // barra superior
+  d += ` M ${x0} ${y1} L ${x0} ${y3}`;    // columna izquierda
+  d += ` M ${x0} ${y2} L ${x2} ${y2}`;    // barra media
+  svg.appendChild(svgEl('path',{d,fill:'none',stroke:color,'stroke-width':3,opacity:0.85,'stroke-linecap':'round'}));
+
+  // 3 puntos numerados
+  const labels = [[x1*0.5,y1,1],[x2*0.7,y2,2],[x0,y3*0.95,3]];
+  labels.forEach(([cx,cy,n])=>{
+    svg.appendChild(svgEl('circle',{cx,cy,r:14,fill:color,stroke:'#0A1628','stroke-width':2}));
+    const t = svgEl('text',{x:cx,y:cy+5,'text-anchor':'middle',fill:'#0A1628','font-family':'JetBrains Mono','font-size':13,'font-weight':700});
+    t.textContent = n;
+    svg.appendChild(t);
+  });
+}
+
+function drawSeguimiento(svg, W, H){
+  const pts = state.scanpath;
+  if(!pts.length) return;
+  const color = '#00B8C4';
+  // Líneas conectando puntos
+  for(let i=1; i<pts.length; i++){
+    svg.appendChild(svgEl('line',{
+      x1:pts[i-1].x, y1:pts[i-1].y, x2:pts[i].x, y2:pts[i].y,
+      stroke: color, 'stroke-width': 2, opacity: 0.7, 'stroke-dasharray': '5 3'
+    }));
+  }
+  // Puntos numerados
+  pts.forEach((p,i)=>{
+    const r = i === 0 ? 18 : 14;
+    svg.appendChild(svgEl('circle',{cx:p.x,cy:p.y,r:r+3,fill:color,opacity:0.25}));
+    svg.appendChild(svgEl('circle',{cx:p.x,cy:p.y,r,fill:color,stroke:'#0A1628','stroke-width':2}));
+    const t = svgEl('text',{
+      x:p.x, y:p.y+5, 'text-anchor':'middle', fill:'#0A1628',
+      'font-family':'JetBrains Mono','font-size': i === 0 ? 14 : 12,'font-weight':700
+    });
+    t.textContent = i+1;
+    svg.appendChild(t);
+  });
+}
+
+/* ───────────────────────────────────────────
+   HEATMAP
+   ─────────────────────────────────────────── */
+function drawHeatmap(){
+  const canvas = $('heatmapCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, state.displayW, state.displayH);
+  if(!state.layers.heatmap || !state.focos.length) return;
+
+  const W = state.displayW, H = state.displayH;
+
+  // Paso 1: construir mapa de densidad acumulado en baja resolución
+  const dsW = Math.min(180, Math.round(W/4));
+  const dsH = Math.min(180, Math.round(H/4));
+  const density = new Float32Array(dsW * dsH);
+
+  const sigma = Math.max(dsW, dsH) * 0.08; // tamaño del kernel gaussiano
+  const radius = sigma * 2.5;
+
+  state.focos.forEach(f => {
+    const fx = (f.x / W) * dsW;
+    const fy = (f.y / H) * dsH;
+    const intensity = f.v; // 0-1
+    const minX = Math.max(0, Math.floor(fx - radius));
+    const maxX = Math.min(dsW - 1, Math.ceil(fx + radius));
+    const minY = Math.max(0, Math.floor(fy - radius));
+    const maxY = Math.min(dsH - 1, Math.ceil(fy + radius));
+    for(let y = minY; y <= maxY; y++){
+      for(let x = minX; x <= maxX; x++){
+        const dx = x - fx, dy = y - fy;
+        const d2 = dx*dx + dy*dy;
+        const w = Math.exp(-d2 / (2 * sigma * sigma));
+        density[y * dsW + x] += w * intensity;
+      }
+    }
+  });
+
+  // Normalizar densidad
+  let maxD = 0;
+  for(let i = 0; i < density.length; i++) if(density[i] > maxD) maxD = density[i];
+  if(maxD > 0) for(let i = 0; i < density.length; i++) density[i] /= maxD;
+
+  // Paso 2: mapear densidad a color verde→amarillo→naranja→rojo (estilo Tobii / iMotions)
+  // y dibujar en un canvas de baja resolución
+  const dsCanvas = document.createElement('canvas');
+  dsCanvas.width = dsW;
+  dsCanvas.height = dsH;
+  const dsCtx = dsCanvas.getContext('2d');
+  const imgData = dsCtx.createImageData(dsW, dsH);
+  const data = imgData.data;
+
+  // Función de colorización: convierte intensidad 0-1 a RGBA
+  function colorize(t){
+    // t: 0-1
+    // Umbral inferior: 0-0.10 → completamente transparente
+    if(t < 0.10) return [0, 0, 0, 0];
+
+    // Curva suave: estiramos los valores bajos para que verde sea visible
+    const v = (t - 0.10) / 0.90; // re-normalizar a 0-1 sobre el rango visible
+
+    // Stops:
+    // 0.00 → transparente
+    // 0.05 → verde tenue   (0, 200, 0)
+    // 0.30 → verde fuerte  (60, 220, 30)
+    // 0.55 → amarillo      (255, 240, 0)
+    // 0.75 → naranja       (255, 140, 0)
+    // 1.00 → rojo          (220, 20, 0)
+    const stops = [
+      [0.00, 0,   200, 0,   0],
+      [0.10, 60,  220, 30,  120],
+      [0.35, 180, 240, 30,  160],
+      [0.55, 255, 240, 0,   180],
+      [0.75, 255, 140, 0,   195],
+      [1.00, 220, 20,  0,   210]
+    ];
+    for(let i = 0; i < stops.length - 1; i++){
+      const [t0, r0, g0, b0, a0] = stops[i];
+      const [t1, r1, g1, b1, a1] = stops[i+1];
+      if(v >= t0 && v <= t1){
+        const f = (v - t0) / (t1 - t0);
+        return [
+          Math.round(r0 + (r1 - r0) * f),
+          Math.round(g0 + (g1 - g0) * f),
+          Math.round(b0 + (b1 - b0) * f),
+          Math.round(a0 + (a1 - a0) * f)
+        ];
+      }
+    }
+    const last = stops[stops.length - 1];
+    return [last[1], last[2], last[3], last[4]];
+  }
+
+  for(let y = 0; y < dsH; y++){
+    for(let x = 0; x < dsW; x++){
+      const t = density[y * dsW + x];
+      const [r, g, b, a] = colorize(t);
+      const idx = (y * dsW + x) * 4;
+      data[idx] = r;
+      data[idx+1] = g;
+      data[idx+2] = b;
+      data[idx+3] = a;
+    }
+  }
+  dsCtx.putImageData(imgData, 0, 0);
+
+  // Paso 3: pintar escalado en el canvas principal con suavizado
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(dsCanvas, 0, 0, W, H);
+}
+
+/* ───────────────────────────────────────────
+   OPACITY MAP
+   ─────────────────────────────────────────── */
+function drawOpacityMap(){
+  const canvas = $('opacityCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, state.displayW, state.displayH);
+  if(!state.layers.opacityMap || !state.focos.length) return;
+
+  const W = state.displayW, H = state.displayH;
+
+  // Capa oscura sobre toda la imagen
+  ctx.fillStyle = 'rgba(0,0,0,0.78)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Recortar (destination-out) círculos sobre los focos principales
+  ctx.globalCompositeOperation = 'destination-out';
+  state.focos.slice(0,8).forEach(f=>{
+    const r = Math.max(W, H) * 0.14 * (0.6 + f.v * 0.4);
+    const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, r);
+    grad.addColorStop(0, 'rgba(0,0,0,1)');
+    grad.addColorStop(0.5, 'rgba(0,0,0,0.7)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, r, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  ctx.globalCompositeOperation = 'source-over';
+}
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DOCUMENTOS DESCARGABLES (Word + PDF)
+   Word: archivo HTML con extensión .doc (Word lo abre nativamente)
+   PDF: genera HTML imprimible que el navegador puede convertir a PDF
+   ═══════════════════════════════════════════════════════════════ */
+
+function captureCompositeImage(){
+  // Captura el canvas + overlays en una sola imagen base64
+  const W = state.displayW, H = state.displayH;
+  const tmp = document.createElement('canvas');
+  tmp.width = W; tmp.height = H;
+  const tctx = tmp.getContext('2d');
+  // Capa 1: imagen base
+  tctx.drawImage($('imgCanvas'), 0, 0);
+  // Capa 2: heatmap
+  tctx.drawImage($('heatmapCanvas'), 0, 0);
+  // Capa 3: opacity map
+  tctx.drawImage($('opacityCanvas'), 0, 0);
+  // Capa 4: SVG → imagen
+  const svgData = new XMLSerializer().serializeToString($('overlaySvg'));
+  return new Promise(resolve=>{
+    const svgImg = new Image();
+    svgImg.onload = ()=>{
+      tctx.drawImage(svgImg, 0, 0, W, H);
+      resolve(tmp.toDataURL('image/png'));
+    };
+    svgImg.onerror = ()=>{
+      // Si falla el SVG (ocurre con algunas tipografías), devolver solo canvas
+      resolve(tmp.toDataURL('image/png'));
+    };
+    svgImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+  });
+}
+
+function getActiveLayersList(){
+  const active = [];
+  LAYERS_CONFIG.forEach(L=>{
+    if(state.layers[L.key]) active.push(L.label);
+  });
+  return active;
+}
+
+function buildAnalysisHTML(imgDataUrl){
+  const a = state.analysis || {};
+  const sugs = state.analysis ? generateSuggestions(a) : [];
+  const activeLayers = getActiveLayersList();
+  const date = new Date().toLocaleDateString('es-CO', {year:'numeric',month:'long',day:'numeric'});
+  const W = state.displayW, H = state.displayH;
+  const score = a.score || 0;
+
+  // ─── Generación de hallazgos profundos ───
+  const findings = [];
+  const recommendations = [];
+
+  // Hallazgo 1: Score global y clasificación
+  if(score >= 75){
+    findings.push({
+      titulo: 'Calidad perceptual general',
+      contenido: `La pieza obtiene un score global de ${score} sobre 100, ubicándose en el rango de calidad alta (≥75). Esto indica que la composición presenta una jerarquía visual sólida y atrae la atención del observador de manera efectiva en los primeros segundos de exposición.`
+    });
+    recommendations.push({
+      titulo: 'Mantener la composición actual',
+      contenido: 'La pieza se considera apta para producción y pauta. Se recomienda no introducir modificaciones sustanciales que puedan alterar el equilibrio actual. Cualquier optimización debe ser marginal y validada mediante A/B testing.'
+    });
+  }else if(score >= 55){
+    findings.push({
+      titulo: 'Calidad perceptual general',
+      contenido: `La pieza obtiene un score global de ${score} sobre 100, ubicándose en el rango medio (55–74). Si bien la composición es funcional, presenta oportunidades de mejora claras que pueden incrementar significativamente el impacto visual.`
+    });
+    recommendations.push({
+      titulo: 'Iterar antes de producción',
+      contenido: 'Se recomienda generar al menos dos variantes incorporando los ajustes señalados en este informe, y validar cuantitativamente la mejora mediante el módulo A/B Test antes de cualquier inversión en pauta.'
+    });
+  }else{
+    findings.push({
+      titulo: 'Calidad perceptual general',
+      contenido: `La pieza obtiene un score global de ${score} sobre 100, ubicándose en el rango bajo (<55). Esto sugiere problemas estructurales en la jerarquía visual que requieren un replanteamiento de la composición antes de proceder a producción o pauta.`
+    });
+    recommendations.push({
+      titulo: 'Rediseñar la pieza',
+      contenido: 'Se recomienda detener la producción y replantear la composición desde el brief. Identificar el mensaje único de venta, jerarquizar elementos por importancia, y reducir el ruido visual antes de generar nuevas iteraciones.'
+    });
+  }
+
+  // Hallazgo 2: Atención
+  if(a.att !== undefined){
+    let txt = `El score de atención es ${a.att} sobre 100. `;
+    if(a.att >= 70){
+      txt += 'Los focos detectados presentan una intensidad alta, lo cual indica que la pieza captura la mirada de manera efectiva. Los elementos clave funcionan como anclas visuales.';
+    }else if(a.att >= 50){
+      txt += 'Los focos detectados presentan una intensidad media. La pieza captura atención pero no de forma dominante. Existe espacio para reforzar el ancla visual principal mediante contraste cromático o escala.';
+    }else{
+      txt += 'Los focos detectados presentan una intensidad baja. La pieza no logra atrapar la mirada con fuerza, lo cual reduce su capacidad de impacto en condiciones de competencia visual (redes sociales, vallas, anuncios).';
+      recommendations.push({
+        titulo: 'Reforzar el ancla visual principal',
+        contenido: 'Incrementar el contraste cromático del elemento principal (idealmente entre 4:1 y 7:1 de ratio de contraste), o aumentar su tamaño relativo en un 20–30%. Considerar también el uso de un color saturado de acento que no compita con la paleta general.'
+      });
+    }
+    findings.push({titulo: 'Capacidad de captura visual', contenido: txt});
+  }
+
+  // Hallazgo 3: Balance
+  if(a.bal !== undefined){
+    let txt = `El balance visual es ${a.bal} sobre 100. `;
+    if(a.bal >= 75){
+      txt += 'La distribución de los focos visuales alrededor del centro geométrico es equilibrada. La composición transmite estabilidad y armonía perceptual.';
+    }else if(a.bal >= 60){
+      txt += 'Existe un leve desbalance hacia uno de los lados de la pieza. Esto puede ser intencional (asimetría dinámica) o accidental. Se recomienda validar contra el brief si esta dirección de lectura es deseada.';
+    }else{
+      txt += 'La pieza presenta un desbalance significativo. La atención se concentra desproporcionadamente en una zona, lo cual puede generar sensación de inestabilidad o dejar zonas muertas que el observador no procesará.';
+      recommendations.push({
+        titulo: 'Redistribuir el peso visual',
+        contenido: 'Incorporar contrapeso visual en el lado opuesto al área dominante. Esto puede lograrse mediante un elemento secundario, una zona de color, un detalle gráfico de soporte, o el uso intencional de espacio negativo. El objetivo es no necesariamente simetría literal, sino equilibrio perceptual.'
+      });
+    }
+    findings.push({titulo: 'Balance visual', contenido: txt});
+  }
+
+  // Hallazgo 4: Cantidad de focos
+  if(a.focos !== undefined){
+    let txt = `Se detectaron ${a.focos} focos de atención en la pieza. `;
+    if(a.focos <= 3){
+      txt += 'Esta cantidad es baja, lo cual puede traducirse en una pieza poco estimulante o visualmente plana. Aunque la simplicidad puede ser una virtud en branding, en piezas publicitarias suele requerirse al menos cuatro a seis anclas visuales para mantener el interés.';
+      recommendations.push({
+        titulo: 'Aumentar puntos de interés',
+        contenido: 'Considerar la incorporación de uno o dos elementos secundarios que enriquezcan la lectura sin restarle protagonismo al mensaje principal. Pueden ser íconos, detalles tipográficos diferenciados, o elementos gráficos de soporte.'
+      });
+    }else if(a.focos <= 8){
+      txt += 'Esta cantidad se encuentra en el rango óptimo (4–8 focos), lo cual permite una jerarquía clara sin sobrecargar al observador.';
+    }else{
+      txt += 'Esta cantidad es elevada y sugiere saturación visual. Cuando hay más de diez focos compitiendo por atención, el observador no logra establecer una jerarquía clara y la pieza se percibe como ruidosa.';
+      recommendations.push({
+        titulo: 'Simplificar la composición',
+        contenido: 'Reducir el número de elementos en competencia. Auditar la pieza eliminando adornos no esenciales, simplificando el fondo, unificando la tipografía a dos o tres pesos máximo, y aplicando el principio de menos es más para que los elementos clave puedan respirar.'
+      });
+    }
+    findings.push({titulo: 'Densidad de elementos visuales', contenido: txt});
+  }
+
+  // Hallazgo 5: Posición del foco principal vs puntos áureos
+  if(a.topFocos && a.topFocos.length){
+    const f1 = a.topFocos[0];
+    const tps = [{x:W/3,y:H/3,n:'superior izquierdo'},{x:2*W/3,y:H/3,n:'superior derecho'},{x:W/3,y:2*H/3,n:'inferior izquierdo'},{x:2*W/3,y:2*H/3,n:'inferior derecho'}];
+    let best = null, minD = Infinity;
+    tps.forEach(t=>{const d = Math.hypot(f1.x-t.x, f1.y-t.y); if(d<minD){minD=d;best=t;}});
+    const distPct = (minD / Math.hypot(W,H) * 100).toFixed(1);
+    let txt = `El foco principal de la pieza se localiza a una distancia del ${distPct}% de la diagonal respecto al punto áureo ${best.n} (intersección de tercios). `;
+    if(distPct < 8){
+      txt += 'Esta proximidad indica que el elemento clave de la composición está prácticamente posicionado sobre un punto áureo, lo cual genera una lectura naturalmente armoniosa y de alta retención.';
+    }else if(distPct < 15){
+      txt += 'El foco principal está cerca pero no exactamente sobre un punto áureo. Un ajuste leve de posición podría incrementar la naturalidad de la lectura.';
+      recommendations.push({
+        titulo: 'Ajustar posición del elemento principal',
+        contenido: `Considerar reubicar el elemento clave para que coincida con el punto áureo ${best.n} más cercano. Este desplazamiento, aunque sutil, refuerza la composición y reduce la fatiga visual del observador.`
+      });
+    }else{
+      txt += 'El foco principal se encuentra fuera de los puntos áureos. Esto puede ser una decisión compositiva válida si responde a un objetivo específico de tensión narrativa, pero en piezas publicitarias estándar suele convenir alinearlo con un punto áureo para facilitar la lectura.';
+      recommendations.push({
+        titulo: 'Replantear el posicionamiento áureo',
+        contenido: `Evaluar el reposicionamiento del elemento clave hacia uno de los cuatro puntos áureos. La opción más cercana es el punto ${best.n}. Esto incrementaría el score de la pieza sin alterar significativamente su lectura.`
+      });
+    }
+    findings.push({titulo: 'Alineación con la proporción áurea', contenido: txt});
+  }
+
+  // Hallazgo 6: Capas teóricas evaluadas
+  if(activeLayers.length){
+    findings.push({
+      titulo: 'Capas teóricas evaluadas',
+      contenido: `Durante esta sesión se aplicaron ${activeLayers.length} capas teóricas sobre la pieza: ${activeLayers.join(', ')}. Cada una de estas capas aporta una perspectiva específica sobre la calidad compositiva. El análisis detallado por capa se incluye en el anexo de este informe.`
+    });
+  }
+
+  // Análisis por capa activa (anexo)
+  let perCapaAnalysis = '';
+  if(activeLayers.length){
+    perCapaAnalysis = '<h2>Anexo. Análisis por capa teórica</h2>';
+    Object.keys(state.layers).forEach(key=>{
+      if(state.layers[key] && CONTEXT_DATA[key]){
+        const d = CONTEXT_DATA[key];
+        const readings = d.reading();
+        perCapaAnalysis += `
+          <div class="capa-block">
+            <h3>${d.title}</h3>
+            <p class="capa-theory">${d.theory}</p>
+            <p class="capa-reading-title"><strong>Hallazgos sobre esta pieza:</strong></p>
+            <ul class="capa-reading">
+              ${readings.map(r=>`<li>${r}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+    });
+  }
+
+  // Próximos pasos sintéticos
+  const nextSteps = [
+    'Revisar las recomendaciones de este informe junto al equipo creativo responsable de la pieza.',
+    'Priorizar la implementación de los ajustes señalados según el orden de hallazgos presentado.',
+    'Generar al menos dos variantes incorporando los cambios y volver a analizarlas en el módulo A/B Test de EyeRubi.',
+    'Validar la mejora cuantitativa antes de aprobar la pieza para producción o inversión publicitaria.',
+    'En piezas con alta inversión, considerar validación complementaria mediante eye-tracking real (FaceReader, Pupil Labs) o focus groups.'
+  ];
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Informe ejecutivo de análisis visual</title>
+<style>
+@page { margin: 2.5cm 2cm; }
+body{font-family:'Calibri','Arial',sans-serif;color:#1A1A1A;max-width:780px;margin:0 auto;padding:0 20px;line-height:1.6;font-size:11pt}
+.cover{text-align:center;padding:60px 20px 40px;border-bottom:2px solid #1A1A1A;margin-bottom:30px}
+.cover-title{font-family:'Georgia','Times New Roman',serif;font-size:28pt;font-weight:700;color:#1A1A1A;margin-bottom:8px;letter-spacing:-0.5px}
+.cover-sub{font-family:'Georgia',serif;font-size:14pt;color:#1A1A1A;font-style:italic;margin-bottom:24px}
+.cover-meta{font-size:10pt;color:#4A4A4A;line-height:1.7;margin-top:30px}
+.cover-meta strong{color:#1A1A1A}
+h1{font-family:'Georgia',serif;font-size:18pt;color:#1A1A1A;border-bottom:1px solid #1A1A1A;padding-bottom:6px;margin-top:36px;margin-bottom:16px;font-weight:700}
+h2{font-family:'Georgia',serif;font-size:14pt;color:#1A1A1A;margin-top:28px;margin-bottom:12px;font-weight:700;padding-left:0}
+h3{font-family:'Georgia',serif;font-size:12pt;color:#1A1A1A;margin-top:16px;margin-bottom:8px;font-weight:700}
+p{margin-bottom:10pt;text-align:justify}
+.exec-summary{background:#F5F5F5;border-left:4px solid #1A1A1A;padding:18px 22px;margin:20px 0}
+.exec-summary p{margin-bottom:8pt;text-align:justify}
+.exec-summary p:last-child{margin-bottom:0}
+table.metrics{width:100%;border-collapse:collapse;margin:16px 0}
+table.metrics td{padding:14px 10px;border:1px solid #1A1A1A;text-align:center;vertical-align:middle}
+table.metrics .label{background:#F5F5F5;font-weight:700;font-size:9pt;text-transform:uppercase;letter-spacing:0.05em;color:#1A1A1A}
+table.metrics .value{font-family:'Georgia',serif;font-size:22pt;font-weight:700;color:#1A1A1A}
+.img-block{text-align:center;margin:18px 0;page-break-inside:avoid}
+.img-block img{max-width:100%;border:1px solid #1A1A1A}
+.img-caption{font-size:9pt;color:#4A4A4A;font-style:italic;margin-top:6px}
+.finding{margin:14px 0;padding-bottom:14px;border-bottom:1px solid #DDDDDD;page-break-inside:avoid}
+.finding:last-child{border-bottom:none}
+.finding-title{font-weight:700;font-size:11.5pt;color:#1A1A1A;margin-bottom:6px}
+.finding-num{display:inline-block;font-family:'Georgia',serif;font-size:11.5pt;font-weight:700;color:#B8860B;margin-right:6px}
+.recommendation{margin:14px 0;padding:14px 18px;background:#F9F6EF;border-left:3px solid #B8860B;page-break-inside:avoid}
+.rec-title{font-weight:700;font-size:11.5pt;color:#1A1A1A;margin-bottom:6px}
+.rec-num{display:inline-block;font-family:'Georgia',serif;font-size:11.5pt;font-weight:700;color:#B8860B;margin-right:6px}
+.next-steps{background:#F5F5F5;padding:18px 22px;margin:20px 0;border:1px solid #1A1A1A}
+.next-steps ol{margin:0;padding-left:22px}
+.next-steps li{margin-bottom:8pt;text-align:justify;font-size:10.5pt}
+.capa-block{margin:14px 0;padding-bottom:12px;border-bottom:1px dashed #BBBBBB;page-break-inside:avoid}
+.capa-block:last-child{border-bottom:none}
+.capa-block h3{margin-top:0;color:#1A1A1A;font-size:11.5pt}
+.capa-theory{font-size:10.5pt;color:#4A4A4A;font-style:italic;margin:6px 0}
+.capa-reading-title{margin-top:8px;font-size:10.5pt;color:#1A1A1A}
+.capa-reading{padding-left:18px;font-size:10.5pt;line-height:1.55}
+.capa-reading li{margin-bottom:3pt}
+.footer-doc{margin-top:40px;padding-top:14px;border-top:1px solid #1A1A1A;font-size:9pt;color:#4A4A4A;text-align:center;line-height:1.7}
+.footer-doc strong{color:#1A1A1A;font-family:'Georgia',serif}
+.meta-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:10pt}
+.meta-table td{padding:6px 10px;border-bottom:1px solid #DDDDDD}
+.meta-table td:first-child{font-weight:700;width:35%;color:#1A1A1A}
+.score-line{margin:12px 0;font-size:11pt;line-height:1.7}
+.score-line strong{color:#1A1A1A}
+</style></head>
+<body>
+
+<div class="cover">
+  <div class="cover-title">Informe ejecutivo</div>
+  <div class="cover-sub">Análisis de atención visual</div>
+  <div class="cover-meta">
+    <strong>Pieza analizada</strong> · ${activeLayers.length ? activeLayers.length + ' capas teóricas aplicadas' : 'evaluación cuantitativa general'}<br>
+    <strong>Analista</strong> · Javier Fernando Rubiano Espinosa<br>
+    <strong>Laboratorio</strong> · Behavioral Intelligence Lab, VISORIA Intelligence<br>
+    <strong>Fecha</strong> · ${date}
+  </div>
+</div>
+
+<h1>1. Resumen ejecutivo</h1>
+<div class="exec-summary">
+  <p>El presente documento sintetiza los resultados del análisis algorítmico de atención visual aplicado sobre la pieza objeto de evaluación, integrando ${activeLayers.length} capas teóricas activas durante la sesión y produciendo un conjunto de hallazgos cuantitativos y recomendaciones tácticas orientadas a la toma de decisión gerencial.</p>
+  <p>El score global obtenido es de <strong>${score} sobre 100</strong>, lo cual ubica la pieza en el rango ${score >= 75 ? 'de calidad alta, recomendada para producción' : score >= 55 ? 'medio, con oportunidades claras de mejora' : 'bajo, con problemas estructurales de jerarquía visual'}. Los focos de atención detectados ascienden a ${a.focos || 0}, con una intensidad promedio de captura de ${a.att || 0} sobre 100 y un balance compositivo de ${a.bal || 0} sobre 100.</p>
+  <p>El informe que sigue presenta primero las métricas cuantitativas, luego los hallazgos en orden de relevancia, las recomendaciones tácticas accionables, y cierra con un anexo de análisis por capa teórica aplicada.</p>
+</div>
+
+<h1>2. Pieza analizada</h1>
+<div class="img-block">
+  <img src="${imgDataUrl}" alt="Pieza analizada">
+  <div class="img-caption">Visualización de la pieza con las capas activas en el momento de generar el informe.</div>
+</div>
+<table class="meta-table">
+  <tr><td>Dimensiones originales</td><td>${state.W} × ${state.H} píxeles</td></tr>
+  <tr><td>Proporción de la pieza</td><td>${(state.W/state.H).toFixed(3)} ${Math.abs(state.W/state.H - PHI) < 0.05 ? '(coincide con φ áurea)' : ''}</td></tr>
+  <tr><td>Orientación áurea aplicada</td><td>${state.orient.toUpperCase()}</td></tr>
+  <tr><td>Capas teóricas activas</td><td>${activeLayers.length ? activeLayers.join(', ') : 'Ninguna'}</td></tr>
+</table>
+
+<h1>3. Métricas cuantitativas</h1>
+<table class="metrics">
+  <tr>
+    <td class="label">Focos detectados</td>
+    <td class="label">Score atención</td>
+    <td class="label">Balance visual</td>
+    <td class="label">Score global</td>
+  </tr>
+  <tr>
+    <td class="value">${a.focos ?? '—'}</td>
+    <td class="value">${a.att ?? '—'}</td>
+    <td class="value">${a.bal ?? '—'}</td>
+    <td class="value">${a.score ?? '—'}</td>
+  </tr>
+  <tr>
+    <td class="label" style="font-weight:400;font-size:8pt">Cantidad</td>
+    <td class="label" style="font-weight:400;font-size:8pt">de 100</td>
+    <td class="label" style="font-weight:400;font-size:8pt">de 100</td>
+    <td class="label" style="font-weight:400;font-size:8pt">de 100</td>
+  </tr>
+</table>
+
+<h1>4. Hallazgos del análisis</h1>
+<p>A continuación se presentan los hallazgos del análisis en orden de relevancia para la toma de decisión. Cada hallazgo describe un aspecto evaluado de la pieza y su lectura interpretativa.</p>
+
+${findings.map((f,i) => `
+  <div class="finding">
+    <div class="finding-title"><span class="finding-num">${i+1}.</span>${f.titulo}</div>
+    <p>${f.contenido}</p>
+  </div>
+`).join('')}
+
+<h1>5. Recomendaciones tácticas</h1>
+<p>Las recomendaciones que siguen son acciones concretas derivadas de los hallazgos anteriores. Se sugiere implementarlas en el orden presentado, priorizando aquellas con mayor impacto esperado.</p>
+
+${recommendations.length ? recommendations.map((r,i) => `
+  <div class="recommendation">
+    <div class="rec-title"><span class="rec-num">${i+1}.</span>${r.titulo}</div>
+    <p style="margin-bottom:0">${r.contenido}</p>
+  </div>
+`).join('') : '<p style="font-style:italic;color:#4A4A4A">No se identifican recomendaciones críticas. La pieza presenta métricas saludables. Se sugiere mantener la composición actual y considerar variantes A/B para optimización marginal.</p>'}
+
+<h1>6. Sugerencias estratégicas complementarias</h1>
+<ol style="padding-left:22px">
+  ${sugs.map(s => `<li style="margin-bottom:8pt;text-align:justify">${s}</li>`).join('')}
+</ol>
+
+<h1>7. Próximos pasos</h1>
+<div class="next-steps">
+  <ol>
+    ${nextSteps.map(s => `<li>${s}</li>`).join('')}
+  </ol>
+</div>
+
+${perCapaAnalysis}
+
+<h1>Marco teórico aplicado</h1>
+<p>El análisis se sustenta en los siguientes principios reconocidos de la psicología cognitiva del consumidor y la teoría de la composición visual:</p>
+<ul style="font-size:10.5pt;line-height:1.7;padding-left:22px">
+  <li><strong>Modelo de saliencia visual (Itti y Koch, 1998):</strong> detección automática de regiones con mayor contraste, color y luminancia que capturan la atención preatentiva del observador.</li>
+  <li><strong>Eye-tracking conductual (Yarbus, 1967):</strong> el ojo humano realiza fijaciones y sacadas siguiendo un patrón predecible basado en saliencia y relevancia semántica del estímulo.</li>
+  <li><strong>Procesamiento dual (Kahneman, 2011):</strong> el Sistema 1 capta saliencia en milisegundos, antes que el Sistema 2 entre en acción. El diseño efectivo se optimiza primero para el Sistema 1.</li>
+  <li><strong>Regla de los tercios y proporción áurea:</strong> heurísticas compositivas de origen renacentista que generan armonía perceptual y han demostrado eficacia en branding, fotografía y publicidad.</li>
+  <li><strong>Patrones de lectura (Nielsen, 2006):</strong> patrón Z para piezas de baja densidad textual, patrón F para contenido textual extenso. Validados mediante eye-tracking sobre miles de páginas web.</li>
+  <li><strong>Simetría dinámica (Hambidge, 1920):</strong> sistema de root rectangles para construir composiciones con tensión equilibrada, utilizado en pintura y diseño desde principios del siglo XX.</li>
+</ul>
+
+<div class="footer-doc">
+  <strong>EyeRubi · Behavioral Intelligence Lab</strong><br>
+  Informe generado el ${date} para Javier Fernando Rubiano Espinosa<br>
+  VISORIA Intelligence · javierrubiano.com<br>
+  Documento basado en análisis algorítmico de saliencia visual. La interpretación final requiere juicio profesional.
+</div>
+
+</body></html>`;
+}
+
+async function downloadDocx(){
+  if(!state.img) return;
+  const imgDataUrl = await captureCompositeImage();
+  const html = buildAnalysisHTML(imgDataUrl);
+  // Word abre archivos .doc con contenido HTML
+  const blob = new Blob(['\ufeff', html], {type: 'application/msword'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `EyeRubi_Analisis_${Date.now()}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=> URL.revokeObjectURL(url), 1000);
+}
+
+async function downloadPdf(){
+  if(!state.img) return;
+  const imgDataUrl = await captureCompositeImage();
+  const html = buildAnalysisHTML(imgDataUrl);
+  // Abrir ventana con el HTML y disparar print → guardar como PDF
+  const w = window.open('', '_blank');
+  if(!w){
+    alert('Por favor permite ventanas emergentes para generar el PDF');
+    return;
+  }
+  w.document.write(html + `
+<script>
+window.onload = function(){
+  setTimeout(function(){ window.print(); }, 500);
+};
+<\/script>`);
+  w.document.close();
+}
+
+$('btnDocx').addEventListener('click', downloadDocx);
+$('btnPdf').addEventListener('click', downloadPdf);
+
+/* ═══════════════════════════════════════════════════════════════
+   A/B TEST
+   ═══════════════════════════════════════════════════════════════ */
+
+function setupABDropzone(dzId, slot){
+  const dz = $(dzId);
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.style.display = 'none';
+  document.body.appendChild(input);
+
+  dz.addEventListener('click', ()=> input.click());
+  input.addEventListener('change', e=>{
+    if(e.target.files[0]) loadABImage(e.target.files[0], slot);
+  });
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev, e=>{e.preventDefault();dz.style.borderColor='var(--teal)';}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev, e=>{e.preventDefault();dz.style.borderColor='';}));
+  dz.addEventListener('drop', e=>{
+    const f = e.dataTransfer.files[0];
+    if(f && f.type.startsWith('image/')) loadABImage(f, slot);
+  });
+}
+setupABDropzone('abDzA', 'A');
+setupABDropzone('abDzB', 'B');
+
+function loadABImage(file, slot){
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const result = analyzeABImage(img);
+      state['ab' + slot] = result;
+      renderABSlot(slot, img, result);
+      tryShowABResults();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function analyzeABImage(img){
+  // A/B usa EXACTAMENTE la misma función runFullAnalysis() que Individual.
+  // Esto garantiza que los focos detectados sean IDÉNTICOS bit a bit
+  // para la misma imagen en ambos modos.
+
+  const maxSide = 280;
+  const r = img.width / img.height;
+  let dw, dh;
+  if(r >= 1){ dw = maxSide; dh = maxSide/r; } else { dh = maxSide; dw = maxSide*r; }
+  dw = Math.round(dw); dh = Math.round(dh);
+
+  const tmp = document.createElement('canvas');
+  tmp.width = dw; tmp.height = dh;
+  const tctx = tmp.getContext('2d');
+  tctx.drawImage(img, 0, 0, dw, dh);
+
+  // === MISMA función que Individual ===
+  const result = runFullAnalysis(tmp);
+
+  return {
+    canvas: tmp,
+    focos: result.focos,
+    score: result.score,
+    att: result.att,
+    bal: result.bal,
+    dw, dh
+  };
+}
+
+function renderABSlot(slot, img, result){
+  const dz = $('abDz' + slot);
+  dz.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:relative;display:inline-block;line-height:0';
+
+  const c = document.createElement('canvas');
+  c.width = result.dw; c.height = result.dh;
+  c.style.cssText = 'max-width:100%;border-radius:6px';
+  c.getContext('2d').drawImage(result.canvas, 0, 0);
+  wrap.appendChild(c);
+
+  // SVG overlay con scanpath de 5 puntos
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox',`0 0 ${result.dw} ${result.dh}`);
+  svg.setAttribute('preserveAspectRatio','none');
+  svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none';
+
+  const pts = result.focos.slice(0,5);
+  for(let i=1;i<pts.length;i++){
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',pts[i-1].x); line.setAttribute('y1',pts[i-1].y);
+    line.setAttribute('x2',pts[i].x);   line.setAttribute('y2',pts[i].y);
+    line.setAttribute('stroke','#00B8C4');
+    line.setAttribute('stroke-width','2');
+    line.setAttribute('stroke-dasharray','4 3');
+    line.setAttribute('opacity','0.7');
+    svg.appendChild(line);
+  }
+  pts.forEach((p,i)=>{
+    const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circ.setAttribute('cx',p.x); circ.setAttribute('cy',p.y);
+    circ.setAttribute('r', i===0?14:11);
+    circ.setAttribute('fill','#00B8C4');
+    circ.setAttribute('stroke','#0A1628');
+    circ.setAttribute('stroke-width','2');
+    svg.appendChild(circ);
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',p.x); t.setAttribute('y',p.y+4);
+    t.setAttribute('text-anchor','middle');
+    t.setAttribute('fill','#0A1628');
+    t.setAttribute('font-family','JetBrains Mono');
+    t.setAttribute('font-size','11');
+    t.setAttribute('font-weight','700');
+    t.textContent = i+1;
+    svg.appendChild(t);
+  });
+  wrap.appendChild(svg);
+
+  dz.appendChild(wrap);
+  const sc = document.createElement('div');
+  sc.style.cssText = 'font-family:JetBrains Mono;font-size:12px;color:var(--teal);margin-top:10px;font-weight:700';
+  sc.textContent = `Score ${result.score}/100 · ${result.focos.length} focos`;
+  dz.appendChild(sc);
+}
+
+function tryShowABResults(){
+  if(!state.abA || !state.abB) return;
+  $('abResults').classList.add('show');
+
+  const A = state.abA, B = state.abB;
+  const tbl = $('abTable');
+
+  // Helper para llenar fila
+  function fillRow(rowId, valA, valB, higherIsBetter=true){
+    const tr = $(rowId);
+    const tds = tr.querySelectorAll('td');
+    tds[1].textContent = valA;
+    tds[2].textContent = valB;
+    const diff = valA - valB;
+    const sign = diff > 0 ? '+' : (diff < 0 ? '' : '');
+    tds[3].innerHTML = `<span class="pct">${sign}${diff}</span>`;
+    // Resaltar ganador
+    tr.classList.remove('winner-A','winner-B');
+    if(Math.abs(diff) >= 3){
+      if(higherIsBetter){
+        tr.classList.add(diff > 0 ? 'winner-A' : 'winner-B');
+      }
+    }
+  }
+
+  fillRow('abRowFocos', A.focos.length, B.focos.length, false); // Menos focos = mejor jerarquía
+  fillRow('abRowAtt',   A.att,  B.att);
+  fillRow('abRowBal',   A.bal,  B.bal);
+  fillRow('abRowScore', A.score, B.score);
+
+  const diffScore = A.score - B.score;
+  let winner = '';
+  if(Math.abs(diffScore) < 5) winner = '⚖️ Resultados muy parejos — diferencia no significativa';
+  else if(diffScore > 0) winner = `🏆 Opción A gana por ${diffScore} puntos`;
+  else winner = `🏆 Opción B gana por ${-diffScore} puntos`;
+  $('abWinner').textContent = winner;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   POPUP DE MÉTRICAS
+   ═══════════════════════════════════════════════════════════════ */
+const METRIC_INFO = {
+  focos: {
+    title: '🎯 Focos de atención',
+    desc: 'Cantidad de máximos locales de saliencia detectados en la imagen. Cada foco representa una región donde el ojo se detendría naturalmente al primer vistazo.',
+    formula: 'Detección: máximos locales con umbral ≥ 0.15<br>Supresión no-máxima: distancia mínima = 8% del lado mayor',
+    interp: 'Pocos focos (≤3): pieza muy plana o demasiado simple. Cantidad ideal (4–8): jerarquía clara. Muchos focos (≥10): ruido visual, exceso de elementos compitiendo.',
+    reading: f => f === '—' ? '—' :
+      (f <= 3 ? `Tu pieza tiene ${f} focos — riesgo de baja jerarquía visual. Suma contraste o elementos diferenciadores.` :
+       f <= 8 ? `Tu pieza tiene ${f} focos — jerarquía visual saludable, número óptimo.` :
+       `Tu pieza tiene ${f} focos — exceso de competencia visual. Simplifica eliminando elementos secundarios.`)
+  },
+  atencion: {
+    title: '👁️ Atención',
+    desc: 'Intensidad promedio de los 5 focos más salientes, normalizada a escala 0–100. Mide qué tan "fuertes" son los puntos de mayor interés.',
+    formula: 'Atención = promedio_saliencia(top5_focos) × 100',
+    interp: 'Atención alta (≥70): elementos claramente dominantes capturan la mirada. Media (50–69): captura aceptable. Baja (<50): la pieza no logra atrapar la mirada con fuerza.',
+    reading: v => v === '—' ? '—' :
+      (v >= 70 ? `Tu pieza puntúa ${v}/100 — captura visual fuerte. El ojo se ancla bien en los elementos clave.` :
+       v >= 50 ? `Tu pieza puntúa ${v}/100 — captura aceptable. Aumenta contraste o saturación para reforzar el ancla principal.` :
+       `Tu pieza puntúa ${v}/100 — captura débil. Necesitas un elemento focal más potente (contraste, color, escala).`)
+  },
+  balance: {
+    title: '⚖️ Balance',
+    desc: 'Mide qué tan simétricamente distribuida está la atención visual. Si todos los focos caen en un lado, el balance es bajo; si se distribuyen alrededor del centro, es alto.',
+    formula: 'Balance = 100 − (|Σ(x−cx)/W| + |Σ(y−cy)/H|) × 100<br>donde (cx,cy) = centro de la imagen',
+    interp: 'Balance alto (≥75): composición estable y equilibrada. Medio (60–74): leve carga hacia un lado. Bajo (<60): composición desbalanceada o intencionalmente asimétrica.',
+    reading: v => v === '—' ? '—' :
+      (v >= 75 ? `Tu pieza tiene balance ${v}/100 — composición visualmente estable.` :
+       v >= 60 ? `Tu pieza tiene balance ${v}/100 — leve desbalance. Verifica si es intencional (asimetría dinámica) o accidental.` :
+       `Tu pieza tiene balance ${v}/100 — desbalanceada. Considera redistribuir elementos o agregar contrapeso visual.`)
+  },
+  score: {
+    title: '⭐ Score Global',
+    desc: 'Indicador combinado que sintetiza la calidad perceptual general de la pieza visual.',
+    formula: 'Score = (Atención × 0.6) + (Balance × 0.4)',
+    interp: 'Score ≥ 75: pieza visualmente sólida. 55–74: aceptable con espacio de mejora. <55: baja jerarquía visual, requiere rediseño.',
+    reading: v => v === '—' ? '—' :
+      (v >= 75 ? `Tu pieza obtiene ${v}/100 — visualmente sólida, lista para producción.` :
+       v >= 55 ? `Tu pieza obtiene ${v}/100 — aceptable. Revisa las sugerencias estratégicas para mejorar.` :
+       `Tu pieza obtiene ${v}/100 — baja jerarquía visual. Recomendado rediseñar antes de publicar.`)
+  }
+};
+
+document.querySelectorAll('.metric').forEach(m => {
+  m.addEventListener('click', ()=>{
+    const key = m.dataset.metric;
+    const info = METRIC_INFO[key];
+    if(!info) return;
+    const valueMap = {focos:'mFocos', atencion:'mAtt', balance:'mBal', score:'mScore'};
+    const v = $(valueMap[key]).textContent;
+    const vNum = v === '—' ? '—' : (key === 'focos' ? parseInt(v) : parseInt(v));
+    $('popupTitle').textContent = info.title;
+    $('popupDesc').textContent = info.desc;
+    $('popupFormula').innerHTML = info.formula;
+    $('popupInterp').textContent = info.interp;
+    $('popupReading').textContent = info.reading(vNum);
+    $('metricPopup').classList.add('show');
+  });
+});
+$('popupClose').addEventListener('click', ()=> $('metricPopup').classList.remove('show'));
+$('metricPopup').addEventListener('click', e=>{
+  if(e.target.id === 'metricPopup') $('metricPopup').classList.remove('show');
+});
+
+console.log('✓ EyeRubi Web v15 cargado correctamente');
+</script>
+
+</body>
+</html>
